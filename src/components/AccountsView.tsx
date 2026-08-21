@@ -20,7 +20,8 @@ import {
   Inbox,
   Zap,
   Check,
-  Sparkles
+  Sparkles,
+  Lock
 } from 'lucide-react';
 import { MailAccount, ViewTab } from '../types';
 import { refreshMicrosoftToken, fetchInboxMessages } from '../utils/apiService';
@@ -32,6 +33,7 @@ import {
   ParsedAccountResult
 } from '../utils/accountParser';
 import { playSoftClick, playWindowsNotificationSound } from '../utils/audio';
+import { copyToClipboard } from '../utils/clipboard';
 
 interface AccountsViewProps {
   accounts: MailAccount[];
@@ -80,6 +82,31 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   // Batch Testing State
   const [isTestingAll, setIsTestingAll] = useState(false);
   const [testProgress, setTestProgress] = useState({ current: 0, total: 0 });
+
+  // Track copied indicator { [key: string]: boolean }
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const triggerCopy = async (key: string, text: string, label: string) => {
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2000);
+      playSoftClick();
+      addToast({
+        id: Date.now().toString(),
+        title: 'Copied to Clipboard',
+        preview: `${label} copied successfully.`,
+        type: 'system'
+      });
+    } else {
+      addToast({
+        id: Date.now().toString(),
+        title: 'Copy Error',
+        preview: 'Failed to copy to clipboard.',
+        type: 'error'
+      });
+    }
+  };
 
   // Parse quick input in real-time
   const parsedQuickResult: ParsedAccountResult = parseAccountString(quickString);
@@ -551,17 +578,11 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     }
   };
 
-  const handleCopyLine = (acc: MailAccount) => {
+  const handleCopyLine = async (acc: MailAccount) => {
     const line = `${acc.email}|${acc.password || ''}|${acc.refreshToken}|${acc.clientId}${
       acc.userId ? `|${acc.userId}` : ''
     }`;
-    navigator.clipboard.writeText(line);
-    addToast({
-      id: Date.now().toString(),
-      title: 'Copied to Clipboard',
-      preview: `${acc.email} formatted string copied.`,
-      type: 'system'
-    });
+    await triggerCopy(`card-copy-${acc.id}`, line, `${acc.email} full combo string`);
   };
 
   const handleExportText = () => {
@@ -1015,6 +1036,81 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                           Untested
                         </span>
                       )}
+                    </div>
+
+                    {/* Login Credentials Bar (Email & Password with 1-click Copy) */}
+                    <div className="mt-2 flex items-center flex-wrap gap-1.5 p-1.5 rounded-lg bg-slate-100 dark:bg-slate-950/80 border border-slate-200/90 dark:border-slate-800/90 text-xs">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded bg-blue-500/10 flex items-center space-x-1">
+                        <Lock className="w-3 h-3" />
+                        <span>Login</span>
+                      </span>
+
+                      {/* Copy Mail Button */}
+                      <button
+                        id={`btn-copy-mail-${acc.id}`}
+                        onClick={() => triggerCopy(`mail-${acc.id}`, acc.email, `Email (${acc.email})`)}
+                        className={`flex items-center space-x-1 px-2 py-1 rounded-md border font-mono text-[11px] transition ${
+                          copiedKey === `mail-${acc.id}`
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
+                        }`}
+                        title="Click to copy email address"
+                      >
+                        {copiedKey === `mail-${acc.id}` ? (
+                          <Check className="w-3 h-3 text-white" />
+                        ) : (
+                          <Copy className="w-3 h-3 text-slate-400" />
+                        )}
+                        <span className="font-semibold">Mail:</span>
+                        <span className="truncate max-w-[130px] sm:max-w-[200px]">{acc.email}</span>
+                      </button>
+
+                      {/* Copy Pass Button */}
+                      <button
+                        id={`btn-copy-pass-${acc.id}`}
+                        onClick={() => triggerCopy(`pass-${acc.id}`, acc.password || '', `Password for ${acc.email}`)}
+                        className={`flex items-center space-x-1 px-2 py-1 rounded-md border font-mono text-[11px] transition ${
+                          copiedKey === `pass-${acc.id}`
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
+                        }`}
+                        title="Click to copy password"
+                      >
+                        {copiedKey === `pass-${acc.id}` ? (
+                          <Check className="w-3 h-3 text-white" />
+                        ) : (
+                          <Copy className="w-3 h-3 text-slate-400" />
+                        )}
+                        <span className="font-semibold">Pass:</span>
+                        <span>{acc.password ? acc.password : '(no pass)'}</span>
+                      </button>
+
+                      {/* Copy Full Combo String Button */}
+                      <button
+                        id={`btn-copy-combo-${acc.id}`}
+                        onClick={() =>
+                          triggerCopy(
+                            `combo-${acc.id}`,
+                            `${acc.email}|${acc.password || ''}|${acc.refreshToken}|${acc.clientId}${
+                              acc.userId ? `|${acc.userId}` : ''
+                            }`,
+                            `Full String for ${acc.email}`
+                          )
+                        }
+                        className={`flex items-center space-x-1 px-2 py-1 rounded-md border text-[11px] font-medium transition ml-auto ${
+                          copiedKey === `combo-${acc.id}`
+                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                            : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40'
+                        }`}
+                        title="Copy full combo: mail|pass|refresh_token|client_id"
+                      >
+                        {copiedKey === `combo-${acc.id}` ? (
+                          <Check className="w-3 h-3 text-white" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                        <span>Copy All</span>
+                      </button>
                     </div>
 
                     <div className="flex items-center space-x-3 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap">

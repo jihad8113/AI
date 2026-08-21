@@ -20,6 +20,13 @@ import {
 import { EmailMessage, MailAccount, TelegramSettings } from '../types';
 import { summarizeEmailAi, sendTelegramAlert, fetchInboxMessages } from '../utils/apiService';
 import { playTelegramPing, playSoftClick } from '../utils/audio';
+import { copyToClipboard } from '../utils/clipboard';
+import {
+  ClickableNumber,
+  RenderClickableText,
+  extractNumbers4Plus,
+  cleanHtmlToText
+} from '../utils/clickableCodes';
 
 interface InboxViewProps {
   accounts: MailAccount[];
@@ -287,17 +294,26 @@ export const InboxView: React.FC<InboxViewProps> = ({
     }
   };
 
-  const handleCopyOtpCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    playSoftClick();
-    addToast({
-      id: Date.now().toString(),
-      title: 'Code Copied',
-      preview: `Copied "${code}" to clipboard.`,
-      type: 'system'
-    });
-    setTimeout(() => setCopiedCode(null), 2500);
+  const handleCopyOtpCode = async (code: string) => {
+    const ok = await copyToClipboard(code);
+    if (ok) {
+      setCopiedCode(code);
+      playSoftClick();
+      addToast({
+        id: Date.now().toString(),
+        title: 'Code Copied',
+        preview: `Copied "${code}" to clipboard.`,
+        type: 'system'
+      });
+      setTimeout(() => setCopiedCode(null), 2500);
+    } else {
+      addToast({
+        id: Date.now().toString(),
+        title: 'Copy Failed',
+        preview: 'Could not copy to clipboard.',
+        type: 'error'
+      });
+    }
   };
 
   return (
@@ -567,16 +583,19 @@ export const InboxView: React.FC<InboxViewProps> = ({
                         : 'font-medium text-slate-700 dark:text-slate-300'
                     }`}
                   >
-                    {msg.subject}
+                    <RenderClickableText text={msg.subject} onCopied={handleCopyOtpCode} />
                   </h4>
 
-                  {/* Body snippet */}
+                  {/* Body snippet with clickable 4+ digit numbers */}
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                    {msg.bodyPreview}
+                    <RenderClickableText
+                      text={cleanHtmlToText(msg.bodyPreview || '')}
+                      onCopied={handleCopyOtpCode}
+                    />
                   </p>
 
                   {/* Badges row */}
-                  <div className="flex items-center space-x-1.5 mt-2 flex-wrap">
+                  <div className="flex items-center space-x-1.5 mt-2 flex-wrap gap-y-1">
                     <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                       {msg.accountEmail.split('@')[0]}
                     </span>
@@ -585,11 +604,10 @@ export const InboxView: React.FC<InboxViewProps> = ({
                         High Priority
                       </span>
                     )}
-                    {hasOtp && (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
-                        🔑 Code: {msg.aiAnalysis?.extractedCodes?.[0]}
-                      </span>
-                    )}
+                    {/* Render all detected 4+ digit numbers as instant copy pills */}
+                    {extractNumbers4Plus(`${msg.subject} ${msg.bodyPreview || ''}`).slice(0, 3).map((code) => (
+                      <ClickableNumber key={code} num={code} onCopied={handleCopyOtpCode} />
+                    ))}
                     {msg.forwardedToTelegram && (
                       <span className="text-[9px] px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-medium">
                         Sent to TG
@@ -773,13 +791,60 @@ export const InboxView: React.FC<InboxViewProps> = ({
               </div>
             )}
 
-            {/* Email Body Content */}
+            {/* Auto-Detected 4+ Digit Codes / OTP Bar */}
+            {(() => {
+              const rawBody = activeMessage.body?.content || activeMessage.bodyPreview || '';
+              const fullText = `${activeMessage.subject} ${cleanHtmlToText(rawBody)}`;
+              const detectedCodes = extractNumbers4Plus(fullText);
+
+              if (detectedCodes.length === 0) return null;
+
+              return (
+                <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 dark:bg-amber-950/30 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center space-x-1">
+                      <span>🔑 Detected Numbers & OTPs (Click to Copy):</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center flex-wrap gap-1.5">
+                    {detectedCodes.map((code) => (
+                      <button
+                        key={code}
+                        id={`btn-copy-detected-code-${code}`}
+                        onClick={() => handleCopyOtpCode(code)}
+                        className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg font-mono font-bold text-xs shadow-xs transition transform active:scale-95 ${
+                          copiedCode === code
+                            ? 'bg-emerald-600 text-white shadow-emerald-500/30'
+                            : 'bg-amber-500 hover:bg-amber-600 text-slate-950 hover:text-white shadow-amber-500/20'
+                        }`}
+                        title="Click to copy this number"
+                      >
+                        <span>{code}</span>
+                        {copiedCode === code ? (
+                          <Check className="w-3.5 h-3.5 text-white" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Email Body Content with Clickable 4+ Digit Numbers */}
             <div
               className={`p-5 rounded-xl border flex-1 ${
                 darkMode ? 'bg-slate-900/60 border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
               } shadow-2xs font-sans text-xs leading-relaxed whitespace-pre-wrap`}
             >
-              {activeMessage.body?.content || activeMessage.bodyPreview || 'No text content available.'}
+              <RenderClickableText
+                text={cleanHtmlToText(
+                  activeMessage.body?.content || activeMessage.bodyPreview || 'No text content available.'
+                )}
+                onCopied={handleCopyOtpCode}
+              />
             </div>
 
             {/* Raw JSON Inspector */}
