@@ -1,0 +1,6 @@
+{
+  "name": "WinMail Telegram Controller",
+  "description": "Windows 11 Fluent UI Mail Checker and Telegram Bot Controller for multi-account Microsoft Graph inboxes with auto-sync and AI summaries.",
+  "requestFramePermissions": ["notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
