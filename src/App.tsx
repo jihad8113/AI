@@ -347,6 +347,7 @@ export default function App() {
               countdown={countdown}
               accounts={accounts}
               darkMode={darkMode}
+              addToast={addToast}
             />
           )}
 

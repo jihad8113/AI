@@ -1,6 +1,7 @@
 import React from 'react';
 import { Mail, Bot, AlertTriangle, CheckCircle, X, ExternalLink } from 'lucide-react';
 import { WinToast } from '../types';
+import { ClickableEmail, RenderClickableText } from '../utils/clickableCodes';
 
 interface Windows11NotificationProps {
   toasts: WinToast[];
@@ -71,25 +72,30 @@ export const Windows11Notification: React.FC<Windows11NotificationProps> = ({
 
             {/* Title / Subject */}
             <h4 className="text-xs font-bold leading-snug line-clamp-1 mb-1">
-              {toast.title}
+              <RenderClickableText text={toast.title} />
             </h4>
 
             {/* Sender / Account */}
             {toast.sender && (
-              <p className="text-[11px] font-medium text-blue-600 dark:text-blue-400 line-clamp-1 mb-1">
-                From: {toast.sender}
-              </p>
+              <div className="text-[11px] font-medium text-blue-600 dark:text-blue-400 line-clamp-1 mb-1 flex items-center space-x-1">
+                <span>From:</span>
+                <RenderClickableText text={toast.sender} />
+              </div>
             )}
 
             {/* Body preview */}
             <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 mb-2 leading-relaxed">
-              {toast.preview}
+              <RenderClickableText text={toast.preview} />
             </p>
 
             {/* Bottom Action Footer */}
             <div className="flex items-center justify-between pt-1 border-t border-slate-200/50 dark:border-slate-800/50 text-[10px]">
               <span className="text-slate-400">
-                {toast.accountEmail || 'Windows 11 Notification'}
+                {toast.accountEmail ? (
+                  <ClickableEmail email={toast.accountEmail} showIcon={false} />
+                ) : (
+                  'Windows 11 Notification'
+                )}
               </span>
               {toast.messageId && onOpenMessage && (
                 <button

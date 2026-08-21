@@ -16,9 +16,12 @@ import {
   Bot,
   Sparkles,
   Info,
-  Terminal
+  Terminal,
+  X
 } from 'lucide-react';
-import { SyncSettings, SyncLog, MailAccount } from '../types';
+import { SyncSettings, SyncLog, MailAccount, WinToast } from '../types';
+import { ClickableEmail, RenderClickableText } from '../utils/clickableCodes';
+import { playSoftClick } from '../utils/audio';
 
 interface AutoCheckerSyncViewProps {
   syncSettings: SyncSettings;
@@ -30,6 +33,7 @@ interface AutoCheckerSyncViewProps {
   countdown: number;
   accounts: MailAccount[];
   darkMode: boolean;
+  addToast?: (toast: Omit<WinToast, 'id' | 'timestamp'>) => void;
 }
 
 export const AutoCheckerSyncView: React.FC<AutoCheckerSyncViewProps> = ({
@@ -41,10 +45,12 @@ export const AutoCheckerSyncView: React.FC<AutoCheckerSyncViewProps> = ({
   onManualSync,
   countdown,
   accounts,
-  darkMode
+  darkMode,
+  addToast
 }) => {
   const [logFilter, setLogFilter] = useState<string>('all');
   const [logSearch, setLogSearch] = useState('');
+  const [bulkDeleteLogsModalOpen, setBulkDeleteLogsModalOpen] = useState(false);
 
   const filteredLogs = logs.filter((l) => {
     if (logFilter !== 'all' && l.type !== logFilter) return false;
@@ -58,6 +64,16 @@ export const AutoCheckerSyncView: React.FC<AutoCheckerSyncViewProps> = ({
   });
 
   const handleExportLogs = () => {
+    if (logs.length === 0) {
+      if (addToast) {
+        addToast({
+          title: 'No Logs Found',
+          preview: 'There are no activity logs to export.',
+          type: 'system'
+        });
+      }
+      return;
+    }
     const text = logs
       .map(
         (l) =>
@@ -75,9 +91,32 @@ export const AutoCheckerSyncView: React.FC<AutoCheckerSyncViewProps> = ({
     URL.revokeObjectURL(url);
   };
 
-  const handleClearLogs = () => {
-    if (confirm('Clear all activity logs?')) {
-      setLogs([]);
+  const handleClearLogsClick = () => {
+    if (!logs || logs.length === 0) {
+      playSoftClick();
+      if (addToast) {
+        addToast({
+          title: 'No Logs Found',
+          preview: 'There are currently no logs to delete.',
+          type: 'system'
+        });
+      }
+      return;
+    }
+    setBulkDeleteLogsModalOpen(true);
+  };
+
+  const executeBulkDeleteLogs = () => {
+    const count = logs.length;
+    setLogs([]);
+    setBulkDeleteLogsModalOpen(false);
+    playSoftClick();
+    if (addToast) {
+      addToast({
+        title: 'Logs Cleared',
+        preview: `Successfully deleted all ${count} activity logs.`,
+        type: 'system'
+      });
     }
   };
 
@@ -258,19 +297,23 @@ export const AutoCheckerSyncView: React.FC<AutoCheckerSyncViewProps> = ({
             </div>
 
             <button
+              id="btn-export-logs"
               onClick={handleExportLogs}
-              className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs"
+              className="flex items-center space-x-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition"
               title="Download Logs (.log)"
             >
               <Download className="w-3.5 h-3.5" />
+              <span>Export</span>
             </button>
 
             <button
-              onClick={handleClearLogs}
-              className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-red-400 text-xs"
-              title="Clear Logs"
+              id="btn-clear-logs"
+              onClick={handleClearLogsClick}
+              className="flex items-center space-x-1 px-2.5 py-1 rounded bg-red-950/60 hover:bg-red-900 border border-red-800/80 text-red-300 text-xs font-semibold shadow-xs transition active:scale-95 cursor-pointer"
+              title="Delete All Logs"
             >
-              <Trash2 className="w-3.5 h-3.5" />
+              <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              <span>Clear Logs</span>
             </button>
           </div>
         </div>
@@ -305,12 +348,12 @@ export const AutoCheckerSyncView: React.FC<AutoCheckerSyncViewProps> = ({
                   </span>
 
                   {log.accountEmail && (
-                    <span className="text-blue-400 shrink-0">
-                      [{log.accountEmail.split('@')[0]}]
-                    </span>
+                    <ClickableEmail email={log.accountEmail} showIcon={false} />
                   )}
 
-                  <span className="text-slate-300 flex-1">{log.message}</span>
+                  <span className="text-slate-300 flex-1">
+                    <RenderClickableText text={log.message} />
+                  </span>
 
                   {log.details && (
                     <span className="text-slate-500 truncate max-w-xs">{log.details}</span>
@@ -321,6 +364,57 @@ export const AutoCheckerSyncView: React.FC<AutoCheckerSyncViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* ⚠️ BULK DELETE ALL LOGS CONFIRMATION MODAL (IN-APP) */}
+      {bulkDeleteLogsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
+          <div
+            className={`w-full max-w-md rounded-2xl p-6 shadow-2xl border ${
+              darkMode ? 'bg-slate-900 border-red-900/60 text-slate-100' : 'bg-white border-red-200 text-slate-900'
+            }`}
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-red-600 dark:text-red-400">Clear All Activity Logs</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Permanently delete recorded events</p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/50 text-xs text-red-800 dark:text-red-200 space-y-2 mb-5">
+              <p className="font-semibold">
+                Are you sure you want to delete all <span className="underline font-bold">{logs.length}</span> activity logs?
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-[11px] text-red-700 dark:text-red-300">
+                <li>Deletes all success, error, warning, Telegram, and AI logs.</li>
+                <li>Wipes live console history completely.</li>
+                <li>This action cannot be undone.</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end space-x-2.5">
+              <button
+                type="button"
+                onClick={() => setBulkDeleteLogsModalOpen(false)}
+                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                id="btn-confirm-bulk-delete-logs"
+                onClick={executeBulkDeleteLogs}
+                className="flex items-center space-x-2 px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-xs font-bold text-white shadow-lg shadow-red-600/30 transition transform active:scale-95 cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Delete All ({logs.length}) Logs</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

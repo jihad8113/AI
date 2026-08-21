@@ -23,6 +23,7 @@ import { playTelegramPing, playSoftClick } from '../utils/audio';
 import { copyToClipboard } from '../utils/clipboard';
 import {
   ClickableNumber,
+  ClickableEmail,
   RenderClickableText,
   extractNumbers4Plus,
   cleanHtmlToText
@@ -679,18 +680,27 @@ export const InboxView: React.FC<InboxViewProps> = ({
                   <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
                     {(activeMessage.from?.emailAddress?.name || 'U').substring(0, 1)}
                   </div>
-                  <div>
+                  <div className="flex items-center flex-wrap gap-1">
                     <span className="font-semibold text-slate-900 dark:text-slate-100">
                       {activeMessage.from?.emailAddress?.name || 'Unknown Sender'}
                     </span>
-                    <span className="text-slate-400 ml-1">
-                      &lt;{activeMessage.from?.emailAddress?.address || 'no-address'}&gt;
-                    </span>
+                    {activeMessage.from?.emailAddress?.address && (
+                      <ClickableEmail
+                        email={activeMessage.from.emailAddress.address}
+                        onCopied={handleCopyOtpCode}
+                        showIcon={true}
+                      />
+                    )}
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-3 text-[11px]">
-                  <span>To: <b>{activeMessage.accountEmail}</b></span>
+                <div className="flex items-center space-x-2 text-[11px] flex-wrap">
+                  <span>To:</span>
+                  <ClickableEmail
+                    email={activeMessage.accountEmail}
+                    onCopied={handleCopyOtpCode}
+                    showIcon={true}
+                  />
                   <span>
                     {new Date(activeMessage.receivedDateTime).toLocaleString()}
                   </span>
