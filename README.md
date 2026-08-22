@@ -229,5 +229,5 @@ POST /api/ai/summarize       - Perform Gemini 3.7 Flash analysis and summary
 This project is licensed under the **MIT License**. Feel free to use, modify, and distribute for personal and commercial projects.
 
 <div align="center">
-  <sub>Built with precision using Windows 11 Fluent Design principles and Google Gemini AI.</sub>
+  <sub>Built with precision using Windows Fluent Design principles </sub>
 </div>
