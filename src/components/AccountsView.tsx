@@ -645,81 +645,81 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const totalErrors = accounts.filter((a) => a.status === 'error' || a.status === 'expired_token').length;
 
   return (
-    <div id="accounts-view" className="flex-1 flex flex-col h-full overflow-hidden p-5 space-y-4">
+    <div id="accounts-view" className="flex-1 flex flex-col h-full overflow-hidden p-3 sm:p-4 space-y-2.5">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center space-x-2">
-            <Users className="w-5 h-5 text-blue-500" />
-            <span>Microsoft Accounts & Credentials</span>
+          <h2 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center space-x-1.5">
+            <Users className="w-4 h-4 text-blue-500" />
+            <span>Microsoft Accounts & Fleet</span>
           </h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Manage multi-account OAuth2 tokens, inspect inbox health, and auto-parse combo strings.
+          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+            Manage multi-account OAuth2 tokens, inspect inbox health, and bulk copy credentials.
           </p>
         </div>
 
-        <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+        <div className="flex items-center space-x-1.5 flex-wrap gap-y-1">
           <button
             id="btn-bulk-delete"
             onClick={handleBulkDeleteAccounts}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-red-300 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-xs font-semibold text-red-700 dark:text-red-300 shadow-2xs transition active:scale-95"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md border border-red-300 dark:border-red-900/60 bg-red-50/80 dark:bg-red-950/40 hover:bg-red-100 dark:hover:bg-red-900/60 text-[11px] font-semibold text-red-700 dark:text-red-300 shadow-2xs transition active:scale-95 cursor-pointer"
             title="Delete all mail accounts from fleet"
           >
-            <Trash2 className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
+            <Trash2 className="w-3 h-3 text-red-600 dark:text-red-400" />
             <span>Bulk Delete</span>
           </button>
 
           <button
             id="btn-bulk-import"
             onClick={() => setIsBulkModalOpen(true)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 shadow-2xs transition"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-200 shadow-2xs transition cursor-pointer"
           >
-            <Upload className="w-3.5 h-3.5" />
+            <Upload className="w-3 h-3" />
             <span>Bulk Paste</span>
           </button>
 
           <button
             id="btn-export-accounts"
             onClick={handleExportText}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium text-slate-700 dark:text-slate-200 shadow-2xs transition"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-[11px] font-medium text-slate-700 dark:text-slate-200 shadow-2xs transition cursor-pointer"
           >
-            <Download className="w-3.5 h-3.5" />
+            <Download className="w-3 h-3" />
             <span>Export (.txt)</span>
           </button>
 
           <button
             id="btn-add-single-account"
             onClick={handleOpenAdd}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-xs font-medium text-white shadow-md shadow-blue-500/25 transition"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-[11px] font-semibold text-white shadow-xs transition cursor-pointer"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-3 h-3" />
             <span>New Account</span>
           </button>
         </div>
       </div>
 
-      {/* ⚡ INSTANT AUTO-PARSER & AUTO-CONNECT CARD */}
+      {/* ⚡ COMPACT INSTANT AUTO-PARSER & AUTO-CONNECT CARD */}
       <div
-        className={`p-4 rounded-2xl border transition-all shadow-md shrink-0 ${
+        className={`p-2.5 sm:p-3 rounded-xl border transition-all shadow-xs shrink-0 ${
           darkMode
-            ? 'bg-gradient-to-r from-slate-900/90 via-slate-900 to-blue-950/30 border-blue-900/50'
-            : 'bg-gradient-to-r from-blue-50/90 via-white to-indigo-50/70 border-blue-200'
+            ? 'bg-slate-900/90 border-blue-900/40'
+            : 'bg-blue-50/70 border-blue-200'
         }`}
       >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mb-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1.5 mb-2">
           <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-xs">
-              <Zap className="w-4 h-4" />
+            <div className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center shadow-xs">
+              <Zap className="w-3 h-3" />
             </div>
             <div>
               <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center space-x-1.5">
                 <span>Quick Add & Bulk Accounts Importer</span>
-                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-600/10 text-blue-600 dark:text-blue-400 font-semibold">
-                  Multi-Line Supported
+                <span className="text-[9px] px-1 py-0.2 rounded-full bg-blue-600/10 text-blue-600 dark:text-blue-400 font-semibold">
+                  Multi-Line
                 </span>
               </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Paste 1 or 100+ accounts (<code className="font-mono text-blue-600 dark:text-blue-400">email|password|refresh_token|client_id</code>)
+              <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                Paste combo strings (<code className="font-mono text-blue-600 dark:text-blue-400">email|password|refresh_token|client_id</code>)
               </p>
             </div>
           </div>
@@ -727,14 +727,14 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={() => setIsBulkModalOpen(true)}
-              className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 transition"
+              className="text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 transition"
             >
-              📋 Open Full Bulk Modal
+              📋 Full Modal
             </button>
             {quickString && (
               <button
                 onClick={() => setQuickString('')}
-                className="text-[11px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 Clear
               </button>
@@ -742,15 +742,15 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           </div>
         </div>
 
-        {/* Input Bar (Auto-expands to multi-line textarea for bulk pasting) */}
-        <div className="flex flex-col gap-2">
+        {/* Input Bar */}
+        <div className="flex flex-col gap-1.5">
           <textarea
             id="input-quick-account-string"
-            rows={quickString.includes('\n') || quickString.length > 120 ? 4 : 2}
-            placeholder="Paste combo strings here (one per line):&#10;user1@hotmail.com|password|refresh_token|client_id&#10;user2@outlook.com|password|refresh_token|client_id"
+            rows={quickString.includes('\n') || quickString.length > 120 ? 3 : 1}
+            placeholder="Paste combo strings here (one per line): user1@hotmail.com|pass|refresh_token|client_id"
             value={quickString}
             onChange={(e) => setQuickString(e.target.value)}
-            className={`w-full p-2.5 font-mono text-xs rounded-xl border transition resize-y ${
+            className={`w-full p-2 font-mono text-[11px] rounded-lg border transition resize-y ${
               darkMode
                 ? 'bg-slate-950 border-slate-700 text-slate-100 placeholder-slate-500 focus:border-blue-500'
                 : 'bg-white border-slate-300 text-slate-900 placeholder-slate-400 focus:border-blue-500'
@@ -758,24 +758,24 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           />
 
           <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">
-              {quickLines.length > 1 ? `Detected ${quickLines.length} accounts ready for import` : 'Single or multi-line'}
+            <span className="text-[10px] text-slate-500 dark:text-slate-400">
+              {quickLines.length > 1 ? `Detected ${quickLines.length} accounts` : 'Single or multi-line'}
             </span>
 
-            <div className="flex items-center space-x-2 shrink-0">
+            <div className="flex items-center space-x-1.5 shrink-0">
               <button
                 id="btn-quick-auto-connect"
                 disabled={quickConnecting || !quickString.trim()}
                 onClick={() => handleQuickAutoConnect(true)}
-                className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-md shadow-blue-500/25 transition transform active:scale-95 disabled:opacity-50"
+                className="flex items-center space-x-1 px-3 py-1 rounded-md bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold shadow-xs transition transform active:scale-95 disabled:opacity-50 cursor-pointer"
               >
-                <Sparkles className={`w-3.5 h-3.5 ${quickConnecting ? 'animate-spin' : ''}`} />
+                <Sparkles className={`w-3 h-3 ${quickConnecting ? 'animate-spin' : ''}`} />
                 <span>
                   {quickConnecting
                     ? 'Connecting...'
                     : isMultiLineQuick
-                    ? `Import & Connect All ${quickLines.length} Accounts`
-                    : 'Auto-Connect & Check Inbox'}
+                    ? `Import & Connect (${quickLines.length})`
+                    : 'Auto-Connect'}
                 </span>
               </button>
 
@@ -784,7 +784,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                   id="btn-quick-add-only"
                   disabled={quickConnecting}
                   onClick={() => handleQuickAutoConnect(false)}
-                  className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 transition"
+                  className="px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-200 transition"
                 >
                   + Add to List
                 </button>
@@ -905,83 +905,83 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0">
         <div
-          className={`p-3 rounded-xl border ${
+          className={`p-2 rounded-lg border ${
             darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
           } shadow-2xs`}
         >
-          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
+          <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
             Total Inboxes
           </span>
-          <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+          <p className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
             {accounts.length}
           </p>
         </div>
 
         <div
-          className={`p-3 rounded-xl border ${
+          className={`p-2 rounded-lg border ${
             darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
           } shadow-2xs`}
         >
-          <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Connected & Healthy</span>
+          <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center space-x-1">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>Healthy</span>
           </span>
-          <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+          <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">
             {totalConnected}
           </p>
         </div>
 
         <div
-          className={`p-3 rounded-xl border ${
+          className={`p-2 rounded-lg border ${
             darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
           } shadow-2xs`}
         >
-          <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center space-x-1">
-            <AlertCircle className="w-3.5 h-3.5" />
-            <span>Needs Attention</span>
+          <span className="text-[10px] font-medium text-amber-600 dark:text-amber-400 flex items-center space-x-1">
+            <AlertCircle className="w-3 h-3" />
+            <span>Attention</span>
           </span>
-          <p className="text-xl font-bold text-amber-600 dark:text-amber-400 mt-0.5">
+          <p className="text-base sm:text-lg font-bold text-amber-600 dark:text-amber-400">
             {totalErrors}
           </p>
         </div>
 
         <div
-          className={`p-3 rounded-xl border ${
+          className={`p-2 rounded-lg border ${
             darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
           } shadow-2xs flex flex-col justify-between`}
         >
-          <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-            Batch Verification
+          <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+            Verification
           </span>
           <button
             id="btn-test-all-accounts"
             onClick={handleTestAllAccounts}
             disabled={isTestingAll || accounts.length === 0}
-            className="flex items-center justify-center space-x-1.5 py-1 px-2.5 rounded bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 text-blue-600 dark:text-blue-400 text-xs font-semibold border border-blue-200 dark:border-blue-800/60 transition disabled:opacity-50"
+            className="flex items-center justify-center space-x-1 py-0.5 px-2 rounded bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 text-blue-600 dark:text-blue-400 text-[10px] font-semibold border border-blue-200 dark:border-blue-800/60 transition disabled:opacity-50 cursor-pointer"
           >
-            <RefreshCw className={`w-3 h-3 ${isTestingAll ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-2.5 h-2.5 ${isTestingAll ? 'animate-spin' : ''}`} />
             <span>
               {isTestingAll
                 ? `Checking (${testProgress.current}/${testProgress.total})`
-                : 'Test All Tokens'}
+                : 'Test All'}
             </span>
           </button>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
+        <div className="relative w-full sm:w-72">
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 transform -translate-y-1/2 text-slate-400" />
           <input
             id="input-search-accounts"
             type="text"
             placeholder="Search email, label, client ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full pl-9 pr-3 py-1.5 text-xs rounded-lg border transition ${
+            className={`w-full pl-8 pr-2.5 py-1 text-[11px] rounded-md border transition ${
               darkMode
                 ? 'bg-slate-900/80 border-slate-700 text-slate-200 placeholder-slate-500 focus:border-blue-500'
                 : 'bg-white border-slate-200 text-slate-800 placeholder-slate-400 focus:border-blue-500'
@@ -989,10 +989,10 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           />
         </div>
 
-        <div className="flex items-center space-x-1 self-start sm:self-auto text-xs">
+        <div className="flex items-center space-x-1 self-start sm:self-auto text-[11px]">
           <button
             onClick={() => setFilterStatus('all')}
-            className={`px-3 py-1 rounded-md font-medium transition ${
+            className={`px-2.5 py-0.5 rounded font-medium transition cursor-pointer ${
               filterStatus === 'all'
                 ? 'bg-blue-600 text-white'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
@@ -1002,7 +1002,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           </button>
           <button
             onClick={() => setFilterStatus('connected')}
-            className={`px-3 py-1 rounded-md font-medium transition ${
+            className={`px-2.5 py-0.5 rounded font-medium transition cursor-pointer ${
               filterStatus === 'connected'
                 ? 'bg-emerald-600 text-white'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
@@ -1012,7 +1012,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           </button>
           <button
             onClick={() => setFilterStatus('error')}
-            className={`px-3 py-1 rounded-md font-medium transition ${
+            className={`px-2.5 py-0.5 rounded font-medium transition cursor-pointer ${
               filterStatus === 'error'
                 ? 'bg-red-600 text-white'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
@@ -1024,14 +1024,14 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       </div>
 
       {/* Account Cards Grid */}
-      <div className="flex-1 overflow-y-auto pr-1 space-y-2.5 min-h-0">
+      <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0">
         {filteredAccounts.length === 0 ? (
-          <div className="h-64 flex flex-col items-center justify-center text-center p-6 border border-dashed rounded-xl border-slate-300 dark:border-slate-800">
-            <Users className="w-10 h-10 text-slate-400 mb-2" />
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+          <div className="h-48 flex flex-col items-center justify-center text-center p-4 border border-dashed rounded-xl border-slate-300 dark:border-slate-800">
+            <Users className="w-8 h-8 text-slate-400 mb-1.5" />
+            <h4 className="text-xs font-semibold text-slate-700 dark:text-slate-300">
               No accounts match your criteria
             </h4>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm">
+            <p className="text-[11px] text-slate-400 mt-0.5 max-w-sm">
               Use the Instant String Parser above or &quot;New Account&quot; to register Microsoft Graph inboxes.
             </p>
           </div>
@@ -1042,57 +1042,57 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
               <div
                 key={acc.id}
                 id={`account-card-${acc.id}`}
-                className={`p-4 rounded-xl border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-3 ${
+                className={`p-2.5 sm:p-3 rounded-lg border transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-2 ${
                   darkMode
                     ? 'bg-slate-900/60 hover:bg-slate-900/90 border-slate-800/80 shadow-2xs'
                     : 'bg-white hover:bg-slate-50/90 border-slate-200/90 shadow-2xs'
                 }`}
               >
                 {/* Account Main Info */}
-                <div className="flex items-start space-x-3">
+                <div className="flex items-start space-x-2.5">
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-xs"
+                    className="w-7 h-7 rounded-md flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-xs"
                     style={{ backgroundColor: acc.color || '#0078D4' }}
                   >
                     {acc.email.substring(0, 2).toUpperCase()}
                   </div>
 
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2 flex-wrap">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center space-x-1.5 flex-wrap">
                       <ClickableEmail
                         email={acc.email}
                         onCopied={(val) => triggerCopy(`top-email-${acc.id}`, val, `Email (${val})`)}
                         showIcon={false}
                       />
                       {acc.label && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">
+                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-medium">
                           {acc.label}
                         </span>
                       )}
                       {/* Status Tag */}
                       {acc.status === 'connected' && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium flex items-center space-x-1">
+                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-medium flex items-center space-x-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                          <span>OAuth Valid</span>
+                          <span>Valid</span>
                         </span>
                       )}
                       {(acc.status === 'error' || acc.status === 'expired_token') && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-medium flex items-center space-x-1">
+                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 font-medium flex items-center space-x-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
-                          <span>Token Expired / Error</span>
+                          <span>Expired / Error</span>
                         </span>
                       )}
                       {acc.status === 'idle' && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 font-medium">
+                        <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20 font-medium">
                           Untested
                         </span>
                       )}
                     </div>
 
                     {/* Login Credentials Bar (Email & Password with 1-click Copy) */}
-                    <div className="mt-2 flex items-center flex-wrap gap-1.5 p-1.5 rounded-lg bg-slate-100 dark:bg-slate-950/80 border border-slate-200/90 dark:border-slate-800/90 text-xs">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded bg-blue-500/10 flex items-center space-x-1">
-                        <Lock className="w-3 h-3" />
+                    <div className="mt-1 flex items-center flex-wrap gap-1 p-1 rounded-md bg-slate-100 dark:bg-slate-950/80 border border-slate-200/90 dark:border-slate-800/90 text-[11px]">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 px-1 py-0.2 rounded bg-blue-500/10 flex items-center space-x-0.5">
+                        <Lock className="w-2.5 h-2.5" />
                         <span>Login</span>
                       </span>
 
@@ -1100,7 +1100,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                       <button
                         id={`btn-copy-mail-${acc.id}`}
                         onClick={() => triggerCopy(`mail-${acc.id}`, acc.email, `Email (${acc.email})`)}
-                        className={`flex items-center space-x-1 px-2 py-1 rounded-md border font-mono text-[11px] transition ${
+                        className={`flex items-center space-x-1 px-1.5 py-0.5 rounded border font-mono text-[10px] transition cursor-pointer ${
                           copiedKey === `mail-${acc.id}`
                             ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                             : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
@@ -1108,19 +1108,19 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                         title="Click to copy email address"
                       >
                         {copiedKey === `mail-${acc.id}` ? (
-                          <Check className="w-3 h-3 text-white" />
+                          <Check className="w-2.5 h-2.5 text-white" />
                         ) : (
-                          <Copy className="w-3 h-3 text-slate-400" />
+                          <Copy className="w-2.5 h-2.5 text-slate-400" />
                         )}
                         <span className="font-semibold">Mail:</span>
-                        <span className="truncate max-w-[130px] sm:max-w-[200px]">{acc.email}</span>
+                        <span className="truncate max-w-[120px] sm:max-w-[180px]">{acc.email}</span>
                       </button>
 
                       {/* Copy Pass Button */}
                       <button
                         id={`btn-copy-pass-${acc.id}`}
                         onClick={() => triggerCopy(`pass-${acc.id}`, acc.password || '', `Password for ${acc.email}`)}
-                        className={`flex items-center space-x-1 px-2 py-1 rounded-md border font-mono text-[11px] transition ${
+                        className={`flex items-center space-x-1 px-1.5 py-0.5 rounded border font-mono text-[10px] transition cursor-pointer ${
                           copiedKey === `pass-${acc.id}`
                             ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                             : 'bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400'
@@ -1128,9 +1128,9 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                         title="Click to copy password"
                       >
                         {copiedKey === `pass-${acc.id}` ? (
-                          <Check className="w-3 h-3 text-white" />
+                          <Check className="w-2.5 h-2.5 text-white" />
                         ) : (
-                          <Copy className="w-3 h-3 text-slate-400" />
+                          <Copy className="w-2.5 h-2.5 text-slate-400" />
                         )}
                         <span className="font-semibold">Pass:</span>
                         <span>{acc.password ? acc.password : '(no pass)'}</span>
@@ -1148,7 +1148,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                             `Full String for ${acc.email}`
                           )
                         }
-                        className={`flex items-center space-x-1 px-2 py-1 rounded-md border text-[11px] font-medium transition ml-auto ${
+                        className={`flex items-center space-x-1 px-1.5 py-0.5 rounded border text-[10px] font-medium transition ml-auto cursor-pointer ${
                           copiedKey === `combo-${acc.id}`
                             ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                             : 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/60 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40'
@@ -1156,17 +1156,17 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                         title="Copy full combo: mail|pass|refresh_token|client_id"
                       >
                         {copiedKey === `combo-${acc.id}` ? (
-                          <Check className="w-3 h-3 text-white" />
+                          <Check className="w-2.5 h-2.5 text-white" />
                         ) : (
-                          <Copy className="w-3 h-3" />
+                          <Copy className="w-2.5 h-2.5" />
                         )}
                         <span>Copy All</span>
                       </button>
                     </div>
 
-                    <div className="flex items-center space-x-3 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap">
+                    <div className="flex items-center space-x-2 text-[10px] text-slate-500 dark:text-slate-400 flex-wrap">
                       <span className="font-mono">
-                        Client ID: {acc.clientId.substring(0, 8)}...
+                        Client: {acc.clientId.substring(0, 8)}...
                       </span>
                       <span>•</span>
                       <span>
@@ -1183,8 +1183,8 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                     </div>
 
                     {acc.lastError && (
-                      <p className="text-[11px] text-red-500 flex items-center space-x-1">
-                        <AlertCircle className="w-3 h-3 shrink-0" />
+                      <p className="text-[10px] text-red-500 flex items-center space-x-1">
+                        <AlertCircle className="w-2.5 h-2.5 shrink-0" />
                         <span className="truncate max-w-md">{acc.lastError}</span>
                       </p>
                     )}
@@ -1192,14 +1192,14 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                 </div>
 
                 {/* Account Action Buttons */}
-                <div className="flex items-center space-x-2 self-end md:self-auto shrink-0">
+                <div className="flex items-center space-x-1 self-end md:self-auto shrink-0">
                   <button
                     id={`btn-open-inbox-${acc.id}`}
                     onClick={() => onOpenInboxForAccount(acc.email)}
-                    className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 text-xs font-semibold transition"
+                    className="flex items-center space-x-1 px-2 py-1 rounded-md bg-blue-600/10 hover:bg-blue-600/20 text-blue-600 dark:text-blue-400 text-[10px] font-semibold transition cursor-pointer"
                     title="View Inbox"
                   >
-                    <Inbox className="w-3.5 h-3.5" />
+                    <Inbox className="w-3 h-3" />
                     <span>View Inbox</span>
                   </button>
 
@@ -1207,37 +1207,37 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
                     id={`btn-test-token-${acc.id}`}
                     disabled={isFetching}
                     onClick={() => handleTestAccount(acc)}
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition"
+                    className="p-1 rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition cursor-pointer"
                     title="Re-verify Microsoft OAuth Token"
                   >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin text-blue-500' : ''}`} />
+                    <RefreshCw className={`w-3 h-3 ${isFetching ? 'animate-spin text-blue-500' : ''}`} />
                   </button>
 
                   <button
                     id={`btn-copy-${acc.id}`}
                     onClick={() => handleCopyLine(acc)}
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition"
+                    className="p-1 rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition cursor-pointer"
                     title="Copy mail|password|refresh_token|client_id"
                   >
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="w-3 h-3" />
                   </button>
 
                   <button
                     id={`btn-edit-${acc.id}`}
                     onClick={() => handleOpenEdit(acc)}
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition"
+                    className="p-1 rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition cursor-pointer"
                     title="Edit credentials"
                   >
-                    <Edit2 className="w-3.5 h-3.5" />
+                    <Edit2 className="w-3 h-3" />
                   </button>
 
                   <button
                     id={`btn-delete-${acc.id}`}
                     onClick={() => handleDeleteAccount(acc.id, acc.email)}
-                    className="p-1.5 rounded-lg border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-500 transition"
+                    className="p-1 rounded-md border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/40 text-red-500 transition cursor-pointer"
                     title="Delete Account"
                   >
-                    <Trash2 className="w-3.5 h-3.5" />
+                    <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
               </div>

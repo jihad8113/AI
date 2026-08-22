@@ -62,35 +62,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <div id="settings-view" className="flex-1 flex flex-col h-full overflow-y-auto p-5 space-y-4 max-w-4xl">
+    <div id="settings-view" className="flex-1 flex flex-col h-full overflow-y-auto p-3 sm:p-4 space-y-3 max-w-3xl">
       <div>
-        <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center space-x-2">
-          <Settings className="w-5 h-5 text-slate-500" />
+        <h2 className="text-base font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center space-x-1.5">
+          <Settings className="w-4 h-4 text-slate-500" />
           <span>Application Settings & Environment</span>
         </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-[11px] text-slate-500 dark:text-slate-400">
           Configure notification preferences, Microsoft Graph defaults, and data storage.
         </p>
       </div>
 
       {/* Notifications & Sound Card */}
       <div
-        className={`p-4 rounded-xl border space-y-3 ${
+        className={`p-3 rounded-lg border space-y-2 ${
           darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
         } shadow-2xs`}
       >
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
-          <Bell className="w-3.5 h-3.5" />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1">
+          <Bell className="w-3 h-3" />
           <span>Sound & Notifications</span>
         </span>
 
-        <div className="space-y-2 text-xs divide-y divide-slate-100 dark:divide-slate-800/80">
-          <label className="flex items-center justify-between py-2 cursor-pointer">
+        <div className="space-y-1.5 text-[11px] divide-y divide-slate-100 dark:divide-slate-800/80">
+          <label className="flex items-center justify-between py-1.5 cursor-pointer">
             <div>
               <span className="font-semibold text-slate-900 dark:text-slate-100">
                 Windows 11 Notification Sound Chime
               </span>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[10px] text-slate-400">
                 Synthesizes two-tone harmonious alert when new emails or Telegram alerts arrive.
               </p>
             </div>
@@ -100,16 +100,16 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onChange={(e) =>
                 setSyncSettings((prev) => ({ ...prev, soundEnabled: e.target.checked }))
               }
-              className="rounded text-blue-600"
+              className="rounded text-blue-600 cursor-pointer"
             />
           </label>
 
-          <label className="flex items-center justify-between py-2 cursor-pointer">
+          <label className="flex items-center justify-between py-1.5 cursor-pointer">
             <div>
               <span className="font-semibold text-slate-900 dark:text-slate-100">
                 Windows 11 Action Center Toast Popups
               </span>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[10px] text-slate-400">
                 Displays floating translucent notifications in the bottom-right corner.
               </p>
             </div>
@@ -119,7 +119,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               onChange={(e) =>
                 setSyncSettings((prev) => ({ ...prev, toastEnabled: e.target.checked }))
               }
-              className="rounded text-blue-600"
+              className="rounded text-blue-600 cursor-pointer"
             />
           </label>
         </div>
@@ -127,48 +127,48 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       {/* AI Intelligence Card */}
       <div
-        className={`p-4 rounded-xl border space-y-3 ${
+        className={`p-3 rounded-lg border space-y-2 ${
           darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
         } shadow-2xs`}
       >
-        <span className="text-xs font-bold uppercase tracking-wider text-purple-400 flex items-center space-x-1.5">
-          <Sparkles className="w-3.5 h-3.5" />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-400 flex items-center space-x-1">
+          <Sparkles className="w-3 h-3" />
           <span>Gemini AI Engine</span>
         </span>
 
-        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-          The applet automatically connects to <b>Gemini 3.7 Flash</b> via server-side API proxy to extract verification OTPs, urgency ratings, and reply drafts.
+        <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+          The applet connects to <b>Gemini 3.7 Flash</b> via server-side API proxy to extract verification OTPs, urgency ratings, and reply drafts.
         </p>
 
-        <div className="flex items-center space-x-2 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-          <CheckCircle2 className="w-4 h-4" />
+        <div className="flex items-center space-x-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+          <CheckCircle2 className="w-3.5 h-3.5" />
           <span>Server-side Gemini proxy initialized</span>
         </div>
       </div>
 
       {/* Storage & Fleet Reset Card */}
       <div
-        className={`p-4 rounded-xl border space-y-3 ${
+        className={`p-3 rounded-lg border space-y-2 ${
           darkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'
         } shadow-2xs`}
       >
-        <span className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
-          <Shield className="w-3.5 h-3.5" />
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1">
+          <Shield className="w-3 h-3" />
           <span>Data Storage & Sample Data</span>
         </span>
 
-        <div className="flex flex-wrap gap-2 pt-1">
+        <div className="flex flex-wrap gap-2 pt-0.5">
           <button
             onClick={handleRestoreDemoAccounts}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3 h-3" />
             <span>Load Sample Inboxes</span>
           </button>
 
           <button
             onClick={handleClearAllData}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-red-200 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-950/30 text-xs font-semibold text-red-500"
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md border border-red-200 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-950/30 text-[11px] font-semibold text-red-500 cursor-pointer"
           >
             <span>Wipe All Local Data</span>
           </button>

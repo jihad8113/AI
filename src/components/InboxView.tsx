@@ -321,59 +321,59 @@ export const InboxView: React.FC<InboxViewProps> = ({
     <div id="inbox-view" className="flex-1 flex h-full overflow-hidden">
       {/* Column 1: Folder & Account Filter Bar */}
       <div
-        className={`w-60 shrink-0 border-r flex flex-col justify-between select-none ${
+        className={`w-44 sm:w-48 shrink-0 border-r flex flex-col justify-between select-none ${
           darkMode ? 'bg-slate-950/40 border-slate-800/80' : 'bg-slate-50/70 border-slate-200/80'
         }`}
       >
-        <div className="p-3 space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+        <div className="p-2 space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
               Folders
             </span>
             <button
               onClick={handleRefreshCurrent}
               disabled={isRefreshing}
-              className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 transition"
+              className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 transition cursor-pointer"
               title="Refresh Current Inboxes"
             >
-              <RotateCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-blue-500' : ''}`} />
+              <RotateCw className={`w-3 h-3 ${isRefreshing ? 'animate-spin text-blue-500' : ''}`} />
             </button>
           </div>
 
-          <div className="space-y-1 text-xs">
+          <div className="space-y-0.5 text-[11px]">
             <button
               id="filter-all-inboxes"
               onClick={() => {
                 setSelectedAccountEmail(null);
                 setFolderFilter('all');
               }}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg font-medium transition ${
+              className={`w-full flex items-center justify-between px-2 py-1 rounded-md font-medium transition cursor-pointer ${
                 selectedAccountEmail === null && folderFilter === 'all'
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
               }`}
             >
-              <div className="flex items-center space-x-2">
-                <Inbox className="w-4 h-4" />
+              <div className="flex items-center space-x-1.5">
+                <Inbox className="w-3.5 h-3.5" />
                 <span>All Inboxes</span>
               </div>
-              <span className="text-[11px] opacity-80">{allMessages.length}</span>
+              <span className="text-[10px] opacity-80">{allMessages.length}</span>
             </button>
 
             <button
               id="filter-unread"
               onClick={() => setFolderFilter('unread')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg font-medium transition ${
+              className={`w-full flex items-center justify-between px-2 py-1 rounded-md font-medium transition cursor-pointer ${
                 folderFilter === 'unread'
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
               }`}
             >
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                <span>Unread Messages</span>
+              <div className="flex items-center space-x-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                <span>Unread</span>
               </div>
-              <span className="text-[11px] opacity-80">
+              <span className="text-[10px] opacity-80">
                 {allMessages.filter((m) => !m.isRead).length}
               </span>
             </button>
@@ -381,17 +381,17 @@ export const InboxView: React.FC<InboxViewProps> = ({
             <button
               id="filter-starred"
               onClick={() => setFolderFilter('starred')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg font-medium transition ${
+              className={`w-full flex items-center justify-between px-2 py-1 rounded-md font-medium transition cursor-pointer ${
                 folderFilter === 'starred'
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
               }`}
             >
-              <div className="flex items-center space-x-2">
-                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <div className="flex items-center space-x-1.5">
+                <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                 <span>Starred</span>
               </div>
-              <span className="text-[11px] opacity-80">
+              <span className="text-[10px] opacity-80">
                 {allMessages.filter((m) => m.isStarred).length}
               </span>
             </button>
@@ -399,17 +399,17 @@ export const InboxView: React.FC<InboxViewProps> = ({
             <button
               id="filter-urgent"
               onClick={() => setFolderFilter('urgent')}
-              className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg font-medium transition ${
+              className={`w-full flex items-center justify-between px-2 py-1 rounded-md font-medium transition cursor-pointer ${
                 folderFilter === 'urgent'
                   ? 'bg-blue-600 text-white'
                   : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
               }`}
             >
-              <div className="flex items-center space-x-2">
-                <ShieldAlert className="w-3.5 h-3.5 text-red-500" />
+              <div className="flex items-center space-x-1.5">
+                <ShieldAlert className="w-3 h-3 text-red-500" />
                 <span>Urgent & OTPs</span>
               </div>
-              <span className="text-[11px] opacity-80">
+              <span className="text-[10px] opacity-80">
                 {
                   allMessages.filter(
                     (m) => m.importance === 'high' || m.aiAnalysis?.urgency === 'critical'
@@ -420,11 +420,11 @@ export const InboxView: React.FC<InboxViewProps> = ({
           </div>
 
           {/* Accounts List */}
-          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Accounts ({accounts.length})
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1">
+              Inboxes ({accounts.length})
             </span>
-            <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+            <div className="space-y-0.5 max-h-44 overflow-y-auto pr-0.5">
               {accounts.map((acc) => {
                 const isSelected = selectedAccountEmail?.toLowerCase() === acc.email.toLowerCase();
                 const unread = acc.messages?.filter((m) => !m.isRead).length || 0;
@@ -436,21 +436,21 @@ export const InboxView: React.FC<InboxViewProps> = ({
                       setSelectedAccountEmail(acc.email);
                       setFolderFilter('all');
                     }}
-                    className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition ${
+                    className={`w-full flex items-center justify-between px-1.5 py-1 rounded-md text-[11px] transition cursor-pointer ${
                       isSelected
                         ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 font-semibold border border-blue-500/30'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60'
                     }`}
                   >
-                    <div className="flex items-center space-x-2 truncate">
+                    <div className="flex items-center space-x-1.5 truncate">
                       <span
-                        className="w-2 h-2 rounded-full shrink-0"
+                        className="w-1.5 h-1.5 rounded-full shrink-0"
                         style={{ backgroundColor: acc.color || '#0078D4' }}
                       />
                       <span className="truncate">{acc.email.split('@')[0]}</span>
                     </div>
                     {unread > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-blue-600 text-white font-bold">
+                      <span className="text-[9px] px-1 py-0.2 rounded-full bg-blue-600 text-white font-bold">
                         {unread}
                       </span>
                     )}
@@ -461,9 +461,9 @@ export const InboxView: React.FC<InboxViewProps> = ({
           </div>
         </div>
 
-        {/* Show Old Messages Toggle (100 Top limit) */}
-        <div className="p-3 border-t border-slate-200 dark:border-slate-800 text-xs">
-          <label className="flex items-center space-x-2 text-slate-600 dark:text-slate-400 cursor-pointer">
+        {/* Show Old Messages Toggle */}
+        <div className="p-2 border-t border-slate-200 dark:border-slate-800 text-[10px]">
+          <label className="flex items-center space-x-1.5 text-slate-600 dark:text-slate-400 cursor-pointer">
             <input
               type="checkbox"
               checked={showOld}
@@ -477,21 +477,21 @@ export const InboxView: React.FC<InboxViewProps> = ({
 
       {/* Column 2: Message List */}
       <div
-        className={`w-80 sm:w-96 shrink-0 border-r flex flex-col ${
+        className={`w-64 sm:w-72 shrink-0 border-r flex flex-col ${
           darkMode ? 'bg-slate-900/40 border-slate-800/80' : 'bg-white border-slate-200/80'
         }`}
       >
         {/* Search Header */}
-        <div className="p-3 border-b border-slate-200 dark:border-slate-800 space-y-2">
+        <div className="p-2 border-b border-slate-200 dark:border-slate-800 space-y-1.5">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               id="input-inbox-search"
               type="text"
-              placeholder="Search messages, OTPs, senders..."
+              placeholder="Search OTPs, senders..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border transition ${
+              className={`w-full pl-7 pr-2.5 py-1 text-[11px] rounded-md border transition ${
                 darkMode
                   ? 'bg-slate-950 border-slate-700 text-slate-200 placeholder-slate-500'
                   : 'bg-slate-50 border-slate-200 text-slate-800 placeholder-slate-400'
@@ -499,14 +499,14 @@ export const InboxView: React.FC<InboxViewProps> = ({
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
+          <div className="flex items-center justify-between text-[10px] text-slate-500 px-1">
             <span>
-              Showing {filteredMessages.length} of {allMessages.length}
+              {filteredMessages.length} of {allMessages.length} msgs
             </span>
             {selectedAccountEmail && (
               <button
                 onClick={() => setSelectedAccountEmail(null)}
-                className="text-blue-500 hover:underline"
+                className="text-blue-500 hover:underline cursor-pointer"
               >
                 Clear filter
               </button>
@@ -517,9 +517,9 @@ export const InboxView: React.FC<InboxViewProps> = ({
         {/* Message Items Container */}
         <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
           {filteredMessages.length === 0 ? (
-            <div className="h-48 flex flex-col items-center justify-center text-center p-6 text-slate-400 text-xs">
-              <Inbox className="w-8 h-8 mb-2 opacity-50" />
-              <span>No messages found</span>
+            <div className="h-36 flex flex-col items-center justify-center text-center p-4 text-slate-400 text-[11px]">
+              <Inbox className="w-6 h-6 mb-1.5 opacity-50" />
+              <span>No messages</span>
             </div>
           ) : (
             filteredMessages.map((msg) => {
@@ -530,18 +530,17 @@ export const InboxView: React.FC<InboxViewProps> = ({
                 day: 'numeric'
               });
               const isUnread = !msg.isRead;
-              const hasOtp = msg.aiAnalysis?.extractedCodes && msg.aiAnalysis.extractedCodes.length > 0;
 
               return (
                 <div
                   key={msg.id}
                   id={`msg-item-${msg.id}`}
                   onClick={() => handleSelectMessage(msg)}
-                  className={`p-3 cursor-pointer transition-all ${
+                  className={`p-2 cursor-pointer transition-all ${
                     isSelected
                       ? darkMode
-                        ? 'bg-blue-600/20 border-l-4 border-l-blue-500'
-                        : 'bg-blue-50/90 border-l-4 border-l-blue-600'
+                        ? 'bg-blue-600/20 border-l-2 border-l-blue-500'
+                        : 'bg-blue-50/90 border-l-2 border-l-blue-600'
                       : isUnread
                       ? darkMode
                         ? 'bg-slate-800/30 hover:bg-slate-800/60 font-semibold'
@@ -551,24 +550,24 @@ export const InboxView: React.FC<InboxViewProps> = ({
                       : 'hover:bg-slate-50 text-slate-600'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-1 mb-1">
-                    <div className="flex items-center space-x-1.5 truncate">
+                  <div className="flex items-start justify-between gap-1 mb-0.5">
+                    <div className="flex items-center space-x-1 truncate">
                       {isUnread && (
-                        <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
                       )}
-                      <span className="text-xs text-slate-900 dark:text-slate-100 truncate">
+                      <span className="text-[11px] text-slate-900 dark:text-slate-100 truncate">
                         {senderName}
                       </span>
                     </div>
 
-                    <div className="flex items-center space-x-1 shrink-0 text-[10px] text-slate-400">
+                    <div className="flex items-center space-x-1 shrink-0 text-[9px] text-slate-400">
                       <span>{dateStr}</span>
                       <button
                         onClick={(e) => handleToggleStar(e, msg.id, msg.accountEmail)}
-                        className="p-0.5 text-slate-400 hover:text-amber-400"
+                        className="p-0.5 text-slate-400 hover:text-amber-400 cursor-pointer"
                       >
                         <Star
-                          className={`w-3 h-3 ${
+                          className={`w-2.5 h-2.5 ${
                             msg.isStarred ? 'text-amber-400 fill-amber-400' : ''
                           }`}
                         />
@@ -578,7 +577,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
 
                   {/* Subject */}
                   <h4
-                    className={`text-xs leading-snug line-clamp-1 mb-1 ${
+                    className={`text-[11px] leading-snug line-clamp-1 mb-0.5 ${
                       isUnread
                         ? 'font-bold text-slate-900 dark:text-slate-100'
                         : 'font-medium text-slate-700 dark:text-slate-300'
@@ -587,8 +586,8 @@ export const InboxView: React.FC<InboxViewProps> = ({
                     <RenderClickableText text={msg.subject} onCopied={handleCopyOtpCode} />
                   </h4>
 
-                  {/* Body snippet with clickable 4+ digit numbers */}
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                  {/* Body snippet */}
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1 leading-snug">
                     <RenderClickableText
                       text={cleanHtmlToText(msg.bodyPreview || '')}
                       onCopied={handleCopyOtpCode}
@@ -596,22 +595,22 @@ export const InboxView: React.FC<InboxViewProps> = ({
                   </p>
 
                   {/* Badges row */}
-                  <div className="flex items-center space-x-1.5 mt-2 flex-wrap gap-y-1">
-                    <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                  <div className="flex items-center space-x-1 mt-1 flex-wrap gap-y-0.5">
+                    <span className="text-[8px] px-1 py-0.2 rounded bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                       {msg.accountEmail.split('@')[0]}
                     </span>
                     {msg.importance === 'high' && (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-red-500/10 text-red-600 dark:text-red-400 font-bold border border-red-500/20">
-                        High Priority
+                      <span className="text-[8px] px-1 py-0.2 rounded bg-red-500/10 text-red-600 dark:text-red-400 font-bold border border-red-500/20">
+                        Urgent
                       </span>
                     )}
                     {/* Render all detected 4+ digit numbers as instant copy pills */}
-                    {extractNumbers4Plus(`${msg.subject} ${msg.bodyPreview || ''}`).slice(0, 3).map((code) => (
+                    {extractNumbers4Plus(`${msg.subject} ${msg.bodyPreview || ''}`).slice(0, 2).map((code) => (
                       <ClickableNumber key={code} num={code} onCopied={handleCopyOtpCode} />
                     ))}
                     {msg.forwardedToTelegram && (
-                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-medium">
-                        Sent to TG
+                      <span className="text-[8px] px-1 py-0.2 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 font-medium">
+                        TG
                       </span>
                     )}
                   </div>
@@ -629,55 +628,55 @@ export const InboxView: React.FC<InboxViewProps> = ({
         }`}
       >
         {activeMessage ? (
-          <div className="flex-1 flex flex-col h-full overflow-y-auto p-5 space-y-4">
+          <div className="flex-1 flex flex-col h-full overflow-y-auto p-3 space-y-2.5">
             {/* Header & Quick Action Buttons */}
             <div
-              className={`p-4 rounded-xl border ${
+              className={`p-2.5 sm:p-3 rounded-lg border ${
                 darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'
-              } shadow-2xs space-y-3`}
+              } shadow-2xs space-y-2`}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 leading-snug">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-snug">
                   {activeMessage.subject}
                 </h2>
 
-                <div className="flex items-center space-x-1.5 shrink-0">
+                <div className="flex items-center space-x-1 shrink-0">
                   <button
                     id="btn-forward-telegram"
                     onClick={handleForwardToTelegram}
                     disabled={isDispatchingTelegram}
-                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold shadow-md shadow-sky-500/20 transition disabled:opacity-50"
+                    className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-sky-600 hover:bg-sky-700 text-white text-[11px] font-semibold shadow-xs transition disabled:opacity-50 cursor-pointer"
                     title="Send this email to Telegram"
                   >
-                    <Send className={`w-3.5 h-3.5 ${isDispatchingTelegram ? 'animate-bounce' : ''}`} />
-                    <span>{isDispatchingTelegram ? 'Sending...' : 'Send to Telegram'}</span>
+                    <Send className={`w-3 h-3 ${isDispatchingTelegram ? 'animate-bounce' : ''}`} />
+                    <span>{isDispatchingTelegram ? 'Sending...' : 'To TG'}</span>
                   </button>
 
                   <button
                     id="btn-ai-summarize"
                     onClick={handleAiSummarize}
                     disabled={isSummarizing}
-                    className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold shadow-md shadow-purple-500/20 transition disabled:opacity-50"
+                    className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-semibold shadow-xs transition disabled:opacity-50 cursor-pointer"
                     title="Summarize email and extract OTPs using Gemini AI"
                   >
-                    <Sparkles className={`w-3.5 h-3.5 ${isSummarizing ? 'animate-spin' : ''}`} />
+                    <Sparkles className={`w-3 h-3 ${isSummarizing ? 'animate-spin' : ''}`} />
                     <span>{isSummarizing ? 'Analyzing...' : 'AI Summary'}</span>
                   </button>
 
                   <button
                     onClick={() => setShowJsonRaw(!showJsonRaw)}
-                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs"
+                    className="p-1 rounded-md border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] cursor-pointer"
                     title="Inspect Raw JSON"
                   >
-                    <Code className="w-3.5 h-3.5" />
+                    <Code className="w-3 h-3" />
                   </button>
                 </div>
               </div>
 
               {/* Sender, Recipient & Date details */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-1 border-t border-slate-100 dark:border-slate-800/80 pt-2.5">
-                <div className="flex items-center space-x-2">
-                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 gap-1 border-t border-slate-100 dark:border-slate-800/80 pt-1.5">
+                <div className="flex items-center space-x-1.5">
+                  <div className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[10px]">
                     {(activeMessage.from?.emailAddress?.name || 'U').substring(0, 1)}
                   </div>
                   <div className="flex items-center flex-wrap gap-1">
@@ -694,7 +693,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2 text-[11px] flex-wrap">
+                <div className="flex items-center space-x-1.5 text-[10px] flex-wrap">
                   <span>To:</span>
                   <ClickableEmail
                     email={activeMessage.accountEmail}
@@ -710,16 +709,16 @@ export const InboxView: React.FC<InboxViewProps> = ({
 
             {/* AI Summary Banner (if generated) */}
             {activeMessage.aiAnalysis && (
-              <div className="p-4 rounded-xl border border-purple-500/30 bg-purple-500/10 dark:bg-purple-950/30 backdrop-blur-xs space-y-2.5">
+              <div className="p-2.5 sm:p-3 rounded-lg border border-purple-500/30 bg-purple-500/10 dark:bg-purple-950/30 backdrop-blur-xs space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Sparkles className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                    <h3 className="text-xs font-bold text-purple-900 dark:text-purple-200">
+                  <div className="flex items-center space-x-1.5">
+                    <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                    <h3 className="text-[11px] font-bold text-purple-900 dark:text-purple-200">
                       Gemini Intelligence Summary • {activeMessage.aiAnalysis.category}
                     </h3>
                   </div>
                   <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                    className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold uppercase ${
                       activeMessage.aiAnalysis.urgency === 'critical'
                         ? 'bg-red-500 text-white'
                         : activeMessage.aiAnalysis.urgency === 'high'
@@ -731,29 +730,29 @@ export const InboxView: React.FC<InboxViewProps> = ({
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
+                <p className="text-[11px] text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
                   {activeMessage.aiAnalysis.summary}
                 </p>
 
                 {/* Extracted Verification Codes */}
                 {activeMessage.aiAnalysis.extractedCodes &&
                   activeMessage.aiAnalysis.extractedCodes.length > 0 && (
-                    <div className="flex items-center space-x-2 pt-1">
-                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                    <div className="flex items-center space-x-1.5 pt-1">
+                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
                         Extracted Code:
                       </span>
                       {activeMessage.aiAnalysis.extractedCodes.map((code) => (
                         <button
                           key={code}
                           onClick={() => handleCopyOtpCode(code)}
-                          className="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-xs shadow-xs transition"
+                          className="flex items-center space-x-1 px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-mono font-bold text-[11px] shadow-xs transition cursor-pointer"
                           title="Click to copy"
                         >
                           <span>{code}</span>
                           {copiedCode === code ? (
-                            <Check className="w-3 h-3" />
+                            <Check className="w-2.5 h-2.5" />
                           ) : (
-                            <Copy className="w-3 h-3" />
+                            <Copy className="w-2.5 h-2.5" />
                           )}
                         </button>
                       ))}

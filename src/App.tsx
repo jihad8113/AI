@@ -44,6 +44,17 @@ export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(true);
   const [isChecking, setIsChecking] = useState<boolean>(false);
   const [countdown, setCountdown] = useState<number>(60);
+  const [density, setDensity] = useState<'compact' | 'ultra' | 'normal'>(() => {
+    return (localStorage.getItem('winmail_density') as 'compact' | 'ultra' | 'normal') || 'compact';
+  });
+
+  const cycleDensity = () => {
+    setDensity((prev) => {
+      const next = prev === 'compact' ? 'ultra' : prev === 'ultra' ? 'normal' : 'compact';
+      localStorage.setItem('winmail_density', next);
+      return next;
+    });
+  };
 
   const accountsRef = useRef(accounts);
   accountsRef.current = accounts;
@@ -280,7 +291,7 @@ export default function App() {
 
   return (
     <div
-      className={`h-screen w-screen flex flex-col overflow-hidden font-sans select-none ${
+      className={`h-screen w-screen flex flex-col overflow-hidden font-sans select-none density-${density} ${
         darkMode ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-900'
       }`}
     >
@@ -295,6 +306,8 @@ export default function App() {
         }
         darkMode={darkMode}
         onToggleDarkMode={() => setDarkMode(!darkMode)}
+        density={density}
+        onCycleDensity={cycleDensity}
       />
 
       {/* Main App Canvas */}
