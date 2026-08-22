@@ -300,7 +300,37 @@ export default function App() {
         syncSettings={syncSettings}
         telegramSettings={telegramSettings}
         isChecking={isChecking}
-        onManualSync={runFleetCheck}
+        countdown={countdown}
+        onRefresh={() => {
+          runFleetCheck();
+          addToast({
+            title: '🔄 Fleet Mail Check Triggered',
+            preview: 'Checking latest emails and OTP codes across all connected mailboxes.',
+            type: 'sync'
+          });
+        }}
+        onSetCooldownInterval={(seconds: number) => {
+          setSyncSettings((prev) => ({ ...prev, intervalSeconds: seconds, autoSyncEnabled: true }));
+          setCountdown(seconds);
+          addToast({
+            title: '⏱️ Cooldown Interval Updated',
+            preview: `Auto-sync cooldown set to ${seconds}s. Next sync running in ${seconds}s.`,
+            type: 'system'
+          });
+        }}
+        onToggleAutoSync={() => {
+          setSyncSettings((prev) => {
+            const next = !prev.autoSyncEnabled;
+            addToast({
+              title: next ? '▶️ Auto-Checking Resumed' : '⏸️ Auto-Checking Pushed / Stopped',
+              preview: next
+                ? `Background fleet check active every ${prev.intervalSeconds}s.`
+                : 'Auto-checking is stopped. Click PUSH to Resume or Refresh to check instantly.',
+              type: 'system'
+            });
+            return { ...prev, autoSyncEnabled: next };
+          });
+        }}
         onToggleSound={() =>
           setSyncSettings((prev) => ({ ...prev, soundEnabled: !prev.soundEnabled }))
         }
