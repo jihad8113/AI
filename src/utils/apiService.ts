@@ -202,3 +202,19 @@ export async function saveStaticPaData(payload: {
     return { ok: false, error: err.message || 'Network error saving Static PA' };
   }
 }
+
+export async function syncFleetEmailsToStaticPa(
+  emails: string[]
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch('/api/static-pa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ emails })
+    });
+    const data = await res.json();
+    return { ok: data.ok };
+  } catch (err: any) {
+    return { ok: false, error: err.message };
+  }
+}

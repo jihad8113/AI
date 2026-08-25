@@ -28,7 +28,12 @@ import {
   loadLogs,
   saveLogs
 } from './utils/storage';
-import { fetchInboxMessages, sendTelegramAlert, summarizeEmailAi } from './utils/apiService';
+import {
+  fetchInboxMessages,
+  sendTelegramAlert,
+  summarizeEmailAi,
+  syncFleetEmailsToStaticPa
+} from './utils/apiService';
 import { playWindowsNotificationSound, playTelegramPing } from './utils/audio';
 
 export default function App() {
@@ -63,9 +68,12 @@ export default function App() {
   const syncRef = useRef(syncSettings);
   syncRef.current = syncSettings;
 
-  // Persist State Changes
+  // Persist State Changes & Auto-Sync Emails to src/STP.txt
   useEffect(() => {
     saveAccounts(accounts);
+    // Automatically update src/STP.txt with current account emails while keeping the static password intact
+    const currentEmails = accounts.map((a) => a.email.trim()).filter(Boolean);
+    syncFleetEmailsToStaticPa(currentEmails);
   }, [accounts]);
 
   useEffect(() => {

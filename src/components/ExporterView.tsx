@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   FileCode2,
   Download,
@@ -29,6 +29,7 @@ import {
   generateAccountsText,
   generateStandaloneHtmlFile
 } from '../utils/scriptGenerators';
+import { fetchStaticPaData } from '../utils/apiService';
 import { playSoftClick, playWindowsNotificationSound } from '../utils/audio';
 
 interface ExporterViewProps {
@@ -47,6 +48,15 @@ export const ExporterView: React.FC<ExporterViewProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'html' | 'exe_bat' | 'python' | 'bat' | 'ps1' | 'accounts' | 'stp' | 'readme'>('html');
   const [copied, setCopied] = useState(false);
   const [zipping, setZipping] = useState(false);
+  const [staticPassword, setStaticPassword] = useState('S-and-T@7-2026');
+
+  useEffect(() => {
+    fetchStaticPaData().then((res) => {
+      if (res.ok && res.password) {
+        setStaticPassword(res.password);
+      }
+    });
+  }, []);
 
   const htmlCode = generateStandaloneHtmlFile(accounts, telegramSettings);
   const pythonCode = generatePythonScript(accounts, telegramSettings);
@@ -54,7 +64,10 @@ export const ExporterView: React.FC<ExporterViewProps> = ({
   const batCode = generateWindowsBatchFile();
   const ps1Code = generatePowerShellScript();
   const accountsText = generateAccountsText(accounts);
-  const stpText = `${accounts.map((a) => a.email).join('\n')}\nS-and-T@7-2026\n`;
+  const cleanEmails = accounts.map((a) => a.email.trim()).filter(Boolean);
+  const stpText = cleanEmails.length > 0 
+    ? `${cleanEmails.join('\n')}\n${staticPassword}\n` 
+    : `${staticPassword}\n`;
 
   const readmeText = `===================================================================
      WINMAIL CONTROLLER & TELEGRAM BOT - QUICK START

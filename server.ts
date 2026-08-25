@@ -358,6 +358,24 @@ Respond with a valid JSON object matching this schema:
 const STP_FILE_PATH = path.join(process.cwd(), 'src', 'STP.txt');
 const DEFAULT_STATIC_PASSWORD = 'S-and-T@7-2026';
 
+function readCurrentStaticPassword(): string {
+  try {
+    if (fs.existsSync(STP_FILE_PATH)) {
+      const content = fs.readFileSync(STP_FILE_PATH, 'utf-8');
+      const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length > 0) {
+        const lastLine = lines[lines.length - 1];
+        if (!lastLine.includes('@')) {
+          return lastLine;
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error reading current static password:', err);
+  }
+  return DEFAULT_STATIC_PASSWORD;
+}
+
 app.get('/api/static-pa', (req: Request, res: Response) => {
   try {
     let content = '';
@@ -373,7 +391,7 @@ app.get('/api/static-pa', (req: Request, res: Response) => {
     const emails: string[] = [];
 
     if (lines.length > 0) {
-      // Last non-empty line is assumed to be the static password if it doesn't look like an email, or if it's the designated line
+      // Last non-empty line is assumed to be the static password if it doesn't look like an email
       const lastLine = lines[lines.length - 1];
       if (!lastLine.includes('@')) {
         password = lastLine;
@@ -408,9 +426,17 @@ app.post('/api/static-pa', (req: Request, res: Response) => {
     if (content && typeof content === 'string') {
       finalContent = content.trim() + '\n';
     } else if (Array.isArray(emails)) {
-      const pass = password && typeof password === 'string' ? password.trim() : DEFAULT_STATIC_PASSWORD;
+      // If password was explicitly provided, use it; otherwise preserve existing password from file
+      const pass = password && typeof password === 'string' && password.trim().length > 0
+        ? password.trim()
+        : readCurrentStaticPassword();
+        
       const cleanEmails = emails.map(e => String(e).trim()).filter(Boolean);
-      finalContent = `${cleanEmails.join('\n')}\n${pass}\n`;
+      if (cleanEmails.length > 0) {
+        finalContent = `${cleanEmails.join('\n')}\n${pass}\n`;
+      } else {
+        finalContent = `${pass}\n`;
+      }
     } else {
       return res.status(400).json({
         error: 'Invalid payload. Provide content or { emails, password }.'

@@ -60,52 +60,33 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
 
   const loadInitialData = async () => {
     setIsLoading(true);
-    // Extract unique account emails
-    const fleetEmails = accounts
+    // Extract unique active fleet emails from current accounts
+    const currentFleetEmails = accounts
       .map((a) => a.email.trim())
       .filter((e) => e.length > 0);
-    const uniqueFleetEmails = Array.from(new Set(fleetEmails));
+    const uniqueFleetEmails = Array.from(new Set(currentFleetEmails));
 
-    // Try fetching existing data from server /src/STP.txt
+    // Fetch existing static password and data from server /src/STP.txt
     const serverData = await fetchStaticPaData();
     if (serverData.ok) {
       if (serverData.password) {
         setStaticPassword(serverData.password);
       }
-      if (serverData.emails && serverData.emails.length > 0) {
-        // Merge server emails with current fleet emails
-        const combined = Array.from(
-          new Set([...uniqueFleetEmails, ...serverData.emails])
-        );
-        setSelectedEmails(combined);
-      } else if (uniqueFleetEmails.length > 0) {
-        setSelectedEmails(uniqueFleetEmails);
-      } else {
-        setSelectedEmails([
-          'nsnfnforo@hotmail.com',
-          'nsnfnoro@hotmail.com',
-          'snfforo@hotmail.com'
-        ]);
-      }
-    } else {
-      // Fallback defaults
-      if (uniqueFleetEmails.length > 0) {
-        setSelectedEmails(uniqueFleetEmails);
-      } else {
-        setSelectedEmails([
-          'nsnfnforo@hotmail.com',
-          'nsnfnoro@hotmail.com',
-          'snfforo@hotmail.com'
-        ]);
-      }
     }
+
+    // Set selected emails to match the active accounts in fleet
+    setSelectedEmails(uniqueFleetEmails);
     setIsLoading(false);
   };
 
   // Generate formatted STP text: emails followed by the static password on the final line
   const generateStpContent = (emailsList: string[], pass: string) => {
     const cleanEmails = emailsList.map((e) => e.trim()).filter((e) => e.length > 0);
-    return `${cleanEmails.join('\n')}\n${pass.trim()}`;
+    const trimmedPass = pass.trim();
+    if (cleanEmails.length > 0) {
+      return `${cleanEmails.join('\n')}\n${trimmedPass}`;
+    }
+    return trimmedPass;
   };
 
   const currentGeneratedText = generateStpContent(selectedEmails, staticPassword);
