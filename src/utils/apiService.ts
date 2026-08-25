@@ -265,22 +265,16 @@ export async function syncFleetEmailsToStaticPa(
   emails: string[],
   password?: string
 ): Promise<{ ok: boolean; error?: string; pythonSynced?: boolean }> {
-  const endpoints = ['/api/static-pa', '/api/stp', '/api/static_pa'];
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emails, password })
-      });
-      if (res.ok) {
-        return { ok: true, pythonSynced: true };
-      }
-    } catch {
-      // try next endpoint
+  try {
+    const result = await saveStaticPaData({ emails, password });
+    if (!result.ok) {
+      console.warn('Auto-sync fleet emails to STP.txt warning:', result.error);
     }
+    return { ok: result.ok, error: result.error, pythonSynced: result.pythonSynced };
+  } catch (err: any) {
+    console.error('Auto-sync fleet emails to STP.txt error:', err);
+    return { ok: false, error: err.message || 'Auto-sync failed' };
   }
-  return { ok: false, error: 'Could not sync fleet emails' };
 }
 
 export async function executePythonStpCommand(
