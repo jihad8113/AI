@@ -68,10 +68,15 @@ export default function App() {
   telegramRef.current = telegramSettings;
   const syncRef = useRef(syncSettings);
   syncRef.current = syncSettings;
+  const isInitialMount = useRef(true);
 
   // Persist State Changes & Auto-Sync Emails to src/STP.txt
   useEffect(() => {
     saveAccounts(accounts);
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     // Automatically update src/STP.txt with current account emails while keeping the static password intact
     const currentEmails = accounts.map((a) => a.email.trim()).filter(Boolean);
     const currentPass = loadStaticPaPassword();

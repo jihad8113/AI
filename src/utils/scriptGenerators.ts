@@ -132,8 +132,10 @@ def read_static_password_from_stp():
             try:
                 with open(p, "r", encoding="utf-8") as f:
                     lines = [l.strip() for l in f.read().splitlines() if l.strip()]
-                    if lines and not lines[-1].startswith("@") and "@" not in lines[-1]:
-                        return lines[-1]
+                    if lines:
+                        last = lines[-1]
+                        if not re.search(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', last):
+                            return last
             except Exception:
                 pass
     return DEFAULT_STATIC_PASSWORD

@@ -361,6 +361,11 @@ const SRC_STP_FILE_PATH = path.join(process.cwd(), 'src', 'STP.txt');
 const PYTHON_STP_SCRIPT = path.join(process.cwd(), 'stp_manager.py');
 const DEFAULT_STATIC_PASSWORD = 'S-and-T@7-2026';
 
+function isValidEmail(s: string): boolean {
+  if (!s || typeof s !== 'string') return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
+}
+
 function readCurrentStaticPassword(): string {
   try {
     for (const filePath of [SRC_STP_FILE_PATH, ROOT_STP_FILE_PATH]) {
@@ -369,7 +374,7 @@ function readCurrentStaticPassword(): string {
         const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
         if (lines.length > 0) {
           const lastLine = lines[lines.length - 1];
-          if (!lastLine.includes('@')) {
+          if (!isValidEmail(lastLine)) {
             return lastLine;
           }
         }
@@ -436,13 +441,21 @@ app.get('/api/static-pa', (req: Request, res: Response) => {
     let password = DEFAULT_STATIC_PASSWORD;
     const emails: string[] = [];
 
-    if (lines.length > 0) {
-      const lastLine = lines[lines.length - 1];
-      if (!lastLine.includes('@')) {
-        password = lastLine;
-        emails.push(...lines.slice(0, lines.length - 1));
+    if (lines.length === 1) {
+      if (isValidEmail(lines[0])) {
+        emails.push(lines[0]);
+        password = DEFAULT_STATIC_PASSWORD;
       } else {
-        emails.push(...lines);
+        password = lines[0];
+      }
+    } else if (lines.length > 1) {
+      const lastLine = lines[lines.length - 1];
+      if (!isValidEmail(lastLine)) {
+        password = lastLine;
+        emails.push(...lines.slice(0, lines.length - 1).filter(l => isValidEmail(l) || (l.includes('@') && l.includes('.'))));
+      } else {
+        emails.push(...lines.filter(l => isValidEmail(l) || (l.includes('@') && l.includes('.'))));
+        password = DEFAULT_STATIC_PASSWORD;
       }
     }
 
@@ -477,15 +490,15 @@ app.post('/api/static-pa', async (req: Request, res: Response) => {
       const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       if (lines.length > 0) {
         const last = lines[lines.length - 1];
-        if (!last.includes('@')) {
+        if (!isValidEmail(last)) {
           finalPass = last;
-          finalEmails = lines.slice(0, lines.length - 1);
+          finalEmails = lines.slice(0, lines.length - 1).filter(e => isValidEmail(e) || (e.includes('@') && e.includes('.')));
         } else {
-          finalEmails = lines;
+          finalEmails = lines.filter(e => isValidEmail(e) || (e.includes('@') && e.includes('.')));
         }
       }
     } else if (Array.isArray(emails)) {
-      finalEmails = emails.map(e => String(e).trim()).filter(e => e.includes('@'));
+      finalEmails = emails.map(e => String(e).trim()).filter(e => isValidEmail(e) || (e.includes('@') && e.includes('.')));
       if (finalEmails.length > 0) {
         finalContent = `${finalEmails.join('\n')}\n${finalPass}\n`;
       } else {

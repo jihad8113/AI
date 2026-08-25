@@ -1663,6 +1663,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
         isOpen={isStaticPaModalOpen}
         onClose={() => setIsStaticPaModalOpen(false)}
         accounts={accounts}
+        setAccounts={setAccounts}
         darkMode={darkMode}
         addToast={addToast}
         addLog={addLog}

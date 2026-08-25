@@ -1,3 +1,4 @@
-alex.morgan@outlook.com
-server.alerts@hotmail.com
+user1@hotmail.com
+user2@outlook.com
+newuser@hotmail.com
 S-and-T@7-2026

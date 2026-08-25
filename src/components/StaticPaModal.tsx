@@ -28,6 +28,7 @@ interface StaticPaModalProps {
   isOpen: boolean;
   onClose: () => void;
   accounts: MailAccount[];
+  setAccounts?: React.Dispatch<React.SetStateAction<MailAccount[]>>;
   darkMode: boolean;
   addToast: (toast: any) => void;
   addLog: (type: any, message: string, details?: string, accountEmail?: string) => void;
@@ -37,6 +38,7 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
   isOpen,
   onClose,
   accounts,
+  setAccounts,
   darkMode,
   addToast,
   addLog
@@ -61,16 +63,10 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
     if (isOpen) {
       loadInitialData();
     }
-  }, [isOpen, accounts]);
+  }, [isOpen]);
 
   const loadInitialData = async () => {
     setIsLoading(true);
-    // Extract unique active fleet emails from current accounts
-    const currentFleetEmails = accounts
-      .map((a) => a.email.trim())
-      .filter((e) => e.length > 0);
-    const uniqueFleetEmails = Array.from(new Set(currentFleetEmails));
-
     // Fetch existing static password and data from server /src/STP.txt
     const serverData = await fetchStaticPaData();
     if (serverData.ok) {
@@ -78,10 +74,23 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
         setStaticPassword(serverData.password.trim());
         saveStaticPaPassword(serverData.password.trim());
       }
+      if (serverData.content) {
+        setRawText(serverData.content);
+      }
+      if (serverData.emails && Array.isArray(serverData.emails) && serverData.emails.length > 0) {
+        setSelectedEmails(serverData.emails);
+      } else {
+        const currentFleetEmails = accounts
+          .map((a) => a.email.trim())
+          .filter((e) => e.length > 0);
+        setSelectedEmails(Array.from(new Set(currentFleetEmails)));
+      }
+    } else {
+      const currentFleetEmails = accounts
+        .map((a) => a.email.trim())
+        .filter((e) => e.length > 0);
+      setSelectedEmails(Array.from(new Set(currentFleetEmails)));
     }
-
-    // Set selected emails to match the active accounts in fleet
-    setSelectedEmails(uniqueFleetEmails);
     setIsLoading(false);
   };
 
@@ -290,6 +299,59 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
     autoSaveToServer(combined, staticPassword);
   };
 
+  const handleSyncFromFleet = () => {
+    playSoftClick();
+    const fleetEmails: string[] = Array.from(new Set(accounts.map((a) => a.email.trim()).filter(Boolean)));
+    setSelectedEmails(fleetEmails);
+    autoSaveToServer(fleetEmails, staticPassword);
+    addToast({
+      id: Date.now().toString(),
+      title: 'Fleet Accounts Synced',
+      preview: `Synced ${fleetEmails.length} accounts from fleet into STP.txt.`,
+      type: 'system'
+    });
+  };
+
+  const handleImportToFleet = () => {
+    if (!setAccounts) return;
+    playSoftClick();
+    const currentPass = staticPassword.trim() || DEFAULT_STATIC_PASSWORD;
+    const existingEmails = new Set(accounts.map((a) => a.email.toLowerCase()));
+    const newEmails = selectedEmails.filter((e) => !existingEmails.has(e.toLowerCase()));
+
+    if (newEmails.length === 0) {
+      addToast({
+        id: Date.now().toString(),
+        title: 'Already in Fleet',
+        preview: 'All emails in STP.txt are already present in your Fleet Accounts.',
+        type: 'system'
+      });
+      return;
+    }
+
+    const newAccounts: MailAccount[] = newEmails.map((email, idx) => ({
+      id: `acc_stp_${Date.now()}_${idx}`,
+      email: email.trim(),
+      password: currentPass,
+      refreshToken: '',
+      clientId: 'd3590ed6-52b3-4102-aeff-aad2292ab01c',
+      userId: `usr_${Date.now()}_${idx}`,
+      status: 'idle',
+      lastChecked: null,
+      label: 'STP Import',
+      color: '#10B981',
+      messages: []
+    }));
+
+    setAccounts((prev) => [...prev, ...newAccounts]);
+    addToast({
+      id: Date.now().toString(),
+      title: 'Imported to Fleet',
+      preview: `Added ${newAccounts.length} new accounts from STP.txt to Fleet.`,
+      type: 'system'
+    });
+  };
+
   const handleClearAll = () => {
     setSelectedEmails([]);
     autoSaveToServer([], staticPassword);
@@ -485,26 +547,35 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
               darkMode ? 'bg-slate-950/40 border-slate-800' : 'bg-slate-50 border-slate-200'
             }`}
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2">
               <div className="flex items-center space-x-1.5">
                 <FileText className="w-3.5 h-3.5 text-blue-500" />
                 <span className="font-bold text-[11px] text-slate-700 dark:text-slate-300">
                   Included Mail Accounts ({selectedEmails.length})
                 </span>
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center flex-wrap gap-1.5">
                 <button
-                  onClick={handleSelectAll}
-                  className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold hover:underline cursor-pointer"
+                  onClick={handleSyncFromFleet}
+                  className="px-2 py-0.5 rounded bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-300 font-semibold text-[10px] border border-blue-500/30 transition cursor-pointer"
+                  title="Copy all active email addresses from Fleet accounts into STP.txt"
                 >
-                  Select All Fleet
+                  ⚡ Sync from Fleet ({accounts.length})
                 </button>
-                <span className="text-slate-300 dark:text-slate-700">|</span>
+                {setAccounts && (
+                  <button
+                    onClick={handleImportToFleet}
+                    className="px-2 py-0.5 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 font-semibold text-[10px] border border-emerald-500/30 transition cursor-pointer"
+                    title="Add all emails from STP.txt to active Fleet Accounts table"
+                  >
+                    📥 Import to Fleet
+                  </button>
+                )}
                 <button
                   onClick={handleClearAll}
-                  className="text-[10px] text-slate-400 hover:text-slate-200 hover:underline cursor-pointer"
+                  className="px-1.5 py-0.5 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 text-[10px] transition cursor-pointer"
                 >
-                  Clear All
+                  Clear
                 </button>
               </div>
             </div>
