@@ -400,9 +400,17 @@ function writeStpFiles(content: string) {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      fs.writeFileSync(filePath, content, 'utf-8');
+      // Use fd open, write, and fsync to guarantee flush to physical disk without waiting for process exit
+      const fd = fs.openSync(filePath, 'w');
+      fs.writeSync(fd, content, 0, 'utf-8');
+      fs.fsyncSync(fd);
+      fs.closeSync(fd);
     } catch (e) {
       console.warn(`Notice writing to ${filePath}:`, e);
+      // Fallback
+      try {
+        fs.writeFileSync(filePath, content, 'utf-8');
+      } catch {}
     }
   }
 }

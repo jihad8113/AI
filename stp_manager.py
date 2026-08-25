@@ -108,6 +108,8 @@ def write_stp(emails: List[str], password: str = None) -> str:
         try:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(formatted_content)
+                f.flush()
+                os.fsync(f.fileno())
         except Exception as e:
             sys.stderr.write(f"Warning: Failed to write {path}: {e}\n")
 

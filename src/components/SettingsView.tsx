@@ -12,7 +12,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { SyncSettings, TelegramSettings, MailAccount } from '../types';
-import { INITIAL_DEMO_ACCOUNTS } from '../utils/storage';
+import { INITIAL_DEMO_ACCOUNTS, loadStaticPaPassword } from '../utils/storage';
+import { syncFleetEmailsToStaticPa } from '../utils/apiService';
 
 interface SettingsViewProps {
   syncSettings: SyncSettings;
@@ -38,6 +39,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleRestoreDemoAccounts = () => {
     if (confirm('Restore sample demonstration inboxes with simulated emails?')) {
       setAccounts(INITIAL_DEMO_ACCOUNTS);
+      syncFleetEmailsToStaticPa(
+        INITIAL_DEMO_ACCOUNTS.map((a) => a.email.trim()).filter(Boolean),
+        loadStaticPaPassword()
+      );
       addToast({
         id: Date.now().toString(),
         title: 'Demo Inboxes Restored',
@@ -52,6 +57,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     if (confirm('Are you sure you want to clear all accounts and settings?')) {
       localStorage.clear();
       setAccounts([]);
+      syncFleetEmailsToStaticPa([], loadStaticPaPassword());
       addToast({
         id: Date.now().toString(),
         title: 'Data Cleared',

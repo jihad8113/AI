@@ -25,7 +25,8 @@ import {
   Lock
 } from 'lucide-react';
 import { MailAccount, ViewTab } from '../types';
-import { refreshMicrosoftToken, fetchInboxMessages } from '../utils/apiService';
+import { refreshMicrosoftToken, fetchInboxMessages, syncFleetEmailsToStaticPa } from '../utils/apiService';
+import { loadStaticPaPassword } from '../utils/storage';
 import { generateAccountsText } from '../utils/scriptGenerators';
 import {
   parseAccountString,
@@ -288,11 +289,18 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       messages
     };
 
+    let updatedAccounts: MailAccount[];
     if (existingIndex >= 0) {
-      setAccounts((prev) => prev.map((a, i) => (i === existingIndex ? connectedAccount : a)));
+      updatedAccounts = accounts.map((a, i) => (i === existingIndex ? connectedAccount : a));
     } else {
-      setAccounts((prev) => [connectedAccount, ...prev]);
+      updatedAccounts = [connectedAccount, ...accounts];
     }
+    setAccounts(updatedAccounts);
+    // Explicit instant sync to STP.txt on disk
+    syncFleetEmailsToStaticPa(
+      updatedAccounts.map((a) => a.email.trim()).filter(Boolean),
+      loadStaticPaPassword()
+    );
 
     playWindowsNotificationSound();
     addToast({
@@ -336,7 +344,13 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
       return;
     }
 
-    setAccounts((prev) => [...newAccounts, ...prev]);
+    const allAccounts = [...newAccounts, ...accounts];
+    setAccounts(allAccounts);
+    // Explicit instant sync to STP.txt on disk
+    syncFleetEmailsToStaticPa(
+      allAccounts.map((a) => a.email.trim()).filter(Boolean),
+      loadStaticPaPassword()
+    );
     addToast({
       id: Date.now().toString(),
       title: 'Accounts Added',
@@ -412,7 +426,13 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
         lastChecked: new Date().toISOString(),
         messages: []
       };
-      setAccounts((prev) => [newAcc, ...prev]);
+      const updated = [newAcc, ...accounts];
+      setAccounts(updated);
+      // Explicit instant sync to STP.txt on disk
+      syncFleetEmailsToStaticPa(
+        updated.map((a) => a.email.trim()).filter(Boolean),
+        loadStaticPaPassword()
+      );
       addToast({
         id: Date.now().toString(),
         title: 'Account Added',
@@ -449,7 +469,13 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
     }
 
     if (addedAccounts.length > 0) {
-      setAccounts((prev) => [...addedAccounts, ...prev]);
+      const allAccounts = [...addedAccounts, ...accounts];
+      setAccounts(allAccounts);
+      // Explicit instant sync to STP.txt on disk
+      syncFleetEmailsToStaticPa(
+        allAccounts.map((a) => a.email.trim()).filter(Boolean),
+        loadStaticPaPassword()
+      );
       addToast({
         id: Date.now().toString(),
         title: 'Bulk Import Success',
@@ -580,7 +606,13 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const executeDeleteSingle = () => {
     if (!singleDeleteAccount) return;
     const { id, email } = singleDeleteAccount;
-    setAccounts((prev) => prev.filter((a) => a.id !== id));
+    const remainingAccounts = accounts.filter((a) => a.id !== id);
+    setAccounts(remainingAccounts);
+    // Explicit instant sync to STP.txt on disk
+    syncFleetEmailsToStaticPa(
+      remainingAccounts.map((a) => a.email.trim()).filter(Boolean),
+      loadStaticPaPassword()
+    );
     setSingleDeleteAccount(null);
     playSoftClick();
     addToast({
@@ -609,6 +641,8 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const executeBulkDelete = () => {
     const count = accounts.length;
     setAccounts([]);
+    // Explicit instant sync to STP.txt on disk (empty accounts, static pass preserved)
+    syncFleetEmailsToStaticPa([], loadStaticPaPassword());
     setBulkDeleteModalOpen(false);
     playSoftClick();
     addToast({
