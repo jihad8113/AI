@@ -646,6 +646,16 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
               </div>
 
               <div className="flex items-center space-x-2">
+                <a
+                  href="/STP.txt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-400 hover:text-blue-300 font-semibold text-[10px] flex items-center space-x-0.5 underline transition"
+                  title="View the raw text file directly served from server disk"
+                >
+                  <span>🔗 View Raw /STP.txt</span>
+                </a>
+                <span className="text-slate-600">|</span>
                 <button
                   onClick={() => setIsRawEditor(!isRawEditor)}
                   className="text-slate-400 hover:text-white font-semibold text-[10px] transition cursor-pointer"

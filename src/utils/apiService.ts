@@ -166,9 +166,17 @@ export async function fetchStaticPaData(): Promise<{
 }> {
   try {
     const res = await fetch('/api/static-pa');
-    const data = await res.json();
-    if (!res.ok || !data.ok) {
-      return { ok: false, error: data.error || 'Failed to fetch Static PA' };
+    const text = await res.text();
+    let data: any = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { ok: res.ok, message: text };
+      }
+    }
+    if (!res.ok || (data && data.ok === false)) {
+      return { ok: false, error: data.error || data.message || `Failed with status ${res.status}` };
     }
     return {
       ok: true,
@@ -186,18 +194,32 @@ export async function saveStaticPaData(payload: {
   content?: string;
   password?: string;
   emails?: string[];
-}): Promise<{ ok: boolean; message?: string; content?: string; error?: string }> {
+}): Promise<{ ok: boolean; message?: string; content?: string; error?: string; pythonSynced?: boolean; pythonOutput?: string }> {
   try {
     const res = await fetch('/api/static-pa', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
-    const data = await res.json();
-    if (!res.ok || !data.ok) {
-      return { ok: false, error: data.error || 'Failed to save Static PA' };
+    const text = await res.text();
+    let data: any = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { ok: res.ok, message: text };
+      }
     }
-    return { ok: true, message: data.message, content: data.content };
+    if (!res.ok || (data && data.ok === false)) {
+      return { ok: false, error: data.error || data.message || `Server returned status ${res.status}` };
+    }
+    return {
+      ok: true,
+      message: data.message || 'Saved successfully',
+      content: data.content,
+      pythonSynced: data.pythonSynced,
+      pythonOutput: data.pythonOutput
+    };
   } catch (err: any) {
     return { ok: false, error: err.message || 'Network error saving Static PA' };
   }
@@ -213,8 +235,16 @@ export async function syncFleetEmailsToStaticPa(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ emails, password })
     });
-    const data = await res.json();
-    return { ok: data.ok, pythonSynced: data.pythonSynced };
+    const text = await res.text();
+    let data: any = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { ok: res.ok };
+      }
+    }
+    return { ok: res.ok && (data.ok ?? true), pythonSynced: data.pythonSynced };
   } catch (err: any) {
     return { ok: false, error: err.message };
   }
@@ -230,7 +260,18 @@ export async function executePythonStpCommand(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ command, args })
     });
-    const data = await res.json();
+    const text = await res.text();
+    let data: any = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { ok: res.ok, output: text };
+      }
+    }
+    if (!res.ok || (data && data.ok === false)) {
+      return { ok: false, error: data.error || data.message || `Server error ${res.status}` };
+    }
     return data;
   } catch (err: any) {
     return { ok: false, error: err.message || 'Failed to execute Python STP command' };

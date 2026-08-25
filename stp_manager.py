@@ -17,6 +17,8 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 FILE_PATHS = [
     os.path.join(BASE_DIR, "src", "STP.txt"),
     os.path.join(BASE_DIR, "STP.txt"),
+    os.path.join(BASE_DIR, "public", "STP.txt"),
+    os.path.join(BASE_DIR, "dist", "STP.txt"),
 ]
 
 def is_valid_email(s: str) -> bool:
@@ -27,9 +29,13 @@ def is_valid_email(s: str) -> bool:
     return bool(re.search(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', s))
 
 def ensure_directories():
-    src_dir = os.path.join(BASE_DIR, "src")
-    if not os.path.exists(src_dir):
-        os.makedirs(src_dir, exist_ok=True)
+    for p in FILE_PATHS:
+        parent = os.path.dirname(p)
+        if parent and not os.path.exists(parent):
+            try:
+                os.makedirs(parent, exist_ok=True)
+            except Exception:
+                pass
 
 def read_stp() -> Tuple[List[str], str, str]:
     """

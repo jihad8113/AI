@@ -387,20 +387,23 @@ function readCurrentStaticPassword(): string {
 }
 
 function writeStpFiles(content: string) {
-  try {
-    const srcDir = path.join(process.cwd(), 'src');
-    if (!fs.existsSync(srcDir)) {
-      fs.mkdirSync(srcDir, { recursive: true });
-    }
-    fs.writeFileSync(SRC_STP_FILE_PATH, content, 'utf-8');
-  } catch (e) {
-    console.error('Error writing src/STP.txt:', e);
-  }
+  const targetPaths = [
+    SRC_STP_FILE_PATH,
+    ROOT_STP_FILE_PATH,
+    path.join(process.cwd(), 'public', 'STP.txt'),
+    path.join(process.cwd(), 'dist', 'STP.txt')
+  ];
 
-  try {
-    fs.writeFileSync(ROOT_STP_FILE_PATH, content, 'utf-8');
-  } catch (e) {
-    console.error('Error writing STP.txt:', e);
+  for (const filePath of targetPaths) {
+    try {
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, content, 'utf-8');
+    } catch (e) {
+      console.warn(`Notice writing to ${filePath}:`, e);
+    }
   }
 }
 
@@ -424,6 +427,26 @@ function runPythonStpSync(emails: string[], password: string): Promise<{ ok: boo
     });
   });
 }
+
+// Direct raw text endpoints so the file can be inspected in the browser
+app.get(['/STP.txt', '/src/STP.txt', '/api/static-pa/raw'], (req: Request, res: Response) => {
+  try {
+    let content = '';
+    if (fs.existsSync(SRC_STP_FILE_PATH)) {
+      content = fs.readFileSync(SRC_STP_FILE_PATH, 'utf-8');
+    } else if (fs.existsSync(ROOT_STP_FILE_PATH)) {
+      content = fs.readFileSync(ROOT_STP_FILE_PATH, 'utf-8');
+    } else {
+      content = `alex.morgan@outlook.com\nserver.alerts@hotmail.com\n${DEFAULT_STATIC_PASSWORD}\n`;
+      writeStpFiles(content);
+    }
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    return res.send(content);
+  } catch (err: any) {
+    return res.status(500).send(`Error reading STP.txt: ${err.message}`);
+  }
+});
 
 app.get('/api/static-pa', (req: Request, res: Response) => {
   try {
