@@ -354,19 +354,22 @@ Respond with a valid JSON object matching this schema:
   }
 });
 
-// 8. Static PA (STP.txt) Management in src directory
-const STP_FILE_PATH = path.join(process.cwd(), 'src', 'STP.txt');
+// 8. Static PA (STP.txt) Management in src and root directories
+const ROOT_STP_FILE_PATH = path.join(process.cwd(), 'STP.txt');
+const SRC_STP_FILE_PATH = path.join(process.cwd(), 'src', 'STP.txt');
 const DEFAULT_STATIC_PASSWORD = 'S-and-T@7-2026';
 
 function readCurrentStaticPassword(): string {
   try {
-    if (fs.existsSync(STP_FILE_PATH)) {
-      const content = fs.readFileSync(STP_FILE_PATH, 'utf-8');
-      const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-      if (lines.length > 0) {
-        const lastLine = lines[lines.length - 1];
-        if (!lastLine.includes('@')) {
-          return lastLine;
+    for (const filePath of [SRC_STP_FILE_PATH, ROOT_STP_FILE_PATH]) {
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        if (lines.length > 0) {
+          const lastLine = lines[lines.length - 1];
+          if (!lastLine.includes('@')) {
+            return lastLine;
+          }
         }
       }
     }
@@ -376,14 +379,34 @@ function readCurrentStaticPassword(): string {
   return DEFAULT_STATIC_PASSWORD;
 }
 
+function writeStpFiles(content: string) {
+  try {
+    const srcDir = path.join(process.cwd(), 'src');
+    if (!fs.existsSync(srcDir)) {
+      fs.mkdirSync(srcDir, { recursive: true });
+    }
+    fs.writeFileSync(SRC_STP_FILE_PATH, content, 'utf-8');
+  } catch (e) {
+    console.error('Error writing src/STP.txt:', e);
+  }
+
+  try {
+    fs.writeFileSync(ROOT_STP_FILE_PATH, content, 'utf-8');
+  } catch (e) {
+    console.error('Error writing STP.txt:', e);
+  }
+}
+
 app.get('/api/static-pa', (req: Request, res: Response) => {
   try {
     let content = '';
-    if (fs.existsSync(STP_FILE_PATH)) {
-      content = fs.readFileSync(STP_FILE_PATH, 'utf-8');
+    if (fs.existsSync(SRC_STP_FILE_PATH)) {
+      content = fs.readFileSync(SRC_STP_FILE_PATH, 'utf-8');
+    } else if (fs.existsSync(ROOT_STP_FILE_PATH)) {
+      content = fs.readFileSync(ROOT_STP_FILE_PATH, 'utf-8');
     } else {
-      content = `nsnfnforo@hotmail.com\nnsnfnoro@hotmail.com\nsnfforo@hotmail.com\n${DEFAULT_STATIC_PASSWORD}\n`;
-      fs.writeFileSync(STP_FILE_PATH, content, 'utf-8');
+      content = `alex.morgan@outlook.com\nserver.alerts@hotmail.com\n${DEFAULT_STATIC_PASSWORD}\n`;
+      writeStpFiles(content);
     }
 
     const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
@@ -403,7 +426,7 @@ app.get('/api/static-pa', (req: Request, res: Response) => {
 
     return res.json({
       ok: true,
-      filePath: 'src/STP.txt',
+      filePath: 'src/STP.txt & STP.txt',
       content,
       password,
       emails,
@@ -443,18 +466,12 @@ app.post('/api/static-pa', (req: Request, res: Response) => {
       });
     }
 
-    // Ensure src directory exists
-    const srcDir = path.join(process.cwd(), 'src');
-    if (!fs.existsSync(srcDir)) {
-      fs.mkdirSync(srcDir, { recursive: true });
-    }
-
-    fs.writeFileSync(STP_FILE_PATH, finalContent, 'utf-8');
+    writeStpFiles(finalContent);
 
     return res.json({
       ok: true,
-      message: 'Successfully saved to src/STP.txt',
-      filePath: 'src/STP.txt',
+      message: 'Successfully saved to src/STP.txt and STP.txt',
+      filePath: 'src/STP.txt & STP.txt',
       content: finalContent
     });
   } catch (err: any) {

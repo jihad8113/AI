@@ -27,7 +27,8 @@ import {
   generateExeBuilderBatchFile,
   generatePowerShellScript,
   generateAccountsText,
-  generateStandaloneHtmlFile
+  generateStandaloneHtmlFile,
+  generateStpPythonScript
 } from '../utils/scriptGenerators';
 import { fetchStaticPaData } from '../utils/apiService';
 import { loadStaticPaPassword } from '../utils/storage';
@@ -46,7 +47,7 @@ export const ExporterView: React.FC<ExporterViewProps> = ({
   darkMode,
   addToast
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'html' | 'exe_bat' | 'python' | 'bat' | 'ps1' | 'accounts' | 'stp' | 'readme'>('html');
+  const [activeSubTab, setActiveSubTab] = useState<'html' | 'exe_bat' | 'python' | 'stp_py' | 'bat' | 'ps1' | 'accounts' | 'stp' | 'readme'>('html');
   const [copied, setCopied] = useState(false);
   const [zipping, setZipping] = useState(false);
   const [staticPassword, setStaticPassword] = useState(() => loadStaticPaPassword());
@@ -61,6 +62,7 @@ export const ExporterView: React.FC<ExporterViewProps> = ({
 
   const htmlCode = generateStandaloneHtmlFile(accounts, telegramSettings);
   const pythonCode = generatePythonScript(accounts, telegramSettings);
+  const stpPyCode = generateStpPythonScript();
   const exeBatCode = generateExeBuilderBatchFile();
   const batCode = generateWindowsBatchFile();
   const ps1Code = generatePowerShellScript();
@@ -82,8 +84,10 @@ Thank you for downloading the WinMail Package!
   3. launch_bot.bat              -> Direct 1-click Python runner for Windows 11
   4. launch_bot.ps1              -> Windows 11 PowerShell alternative runner
   5. bot.py                      -> Full Python Telegram Bot engine (Graph API sync)
-  6. accounts.txt                -> Your configured mail accounts (mail|pass|token|id)
-  7. README.txt                  -> This guide
+  6. stp_manager.py              -> Python reader & writer utility for STP.txt
+  7. accounts.txt                -> Your configured mail accounts (mail|pass|token|id)
+  8. STP.txt                     -> Static PA mail list and static password
+  9. README.txt                  -> This guide
 
 -------------------------------------------------------------------
 🚀 OPTION 1: 1-FILE STANDALONE WEB APP (.HTML) - ZERO INSTALLATION!
@@ -99,9 +103,9 @@ Step 1: Extract this ZIP file on Windows 11.
 Step 2: Double-click "build_winmail_exe.bat" to create "dist\\WinMail_Bot.exe".
 
 -------------------------------------------------------------------
-🚀 OPTION 3: RUN DIRECTLY WITH PYTHON
+🚀 OPTION 3: PYTHON STP.TXT UTILITY
 -------------------------------------------------------------------
-Double-click "launch_bot.bat" to monitor inboxes 24/7.
+Run "python stp_manager.py read" or "python stp_manager.py write"
 ===================================================================
 `;
 
@@ -120,6 +124,10 @@ Double-click "launch_bot.bat" to monitor inboxes 24/7.
   } else if (activeSubTab === 'python') {
     currentContent = pythonCode;
     currentFilename = 'bot.py';
+    currentMime = 'text/x-python';
+  } else if (activeSubTab === 'stp_py') {
+    currentContent = stpPyCode;
+    currentFilename = 'stp_manager.py';
     currentMime = 'text/x-python';
   } else if (activeSubTab === 'bat') {
     currentContent = batCode;
@@ -203,6 +211,7 @@ Double-click "launch_bot.bat" to monitor inboxes 24/7.
       folder.file('launch_bot.bat', batCode);
       folder.file('launch_bot.ps1', ps1Code);
       folder.file('bot.py', pythonCode);
+      folder.file('stp_manager.py', stpPyCode);
       folder.file('accounts.txt', accountsText);
       folder.file('STP.txt', stpText);
       folder.file('README.txt', readmeText);
@@ -354,6 +363,19 @@ Double-click "launch_bot.bat" to monitor inboxes 24/7.
             >
               <FileCode2 className="w-3.5 h-3.5" />
               <span>bot.py (Python Engine)</span>
+            </button>
+
+            <button
+              id="tab-stp-py"
+              onClick={() => setActiveSubTab('stp_py')}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                activeSubTab === 'stp_py'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <FileCode2 className="w-3.5 h-3.5" />
+              <span>stp_manager.py (Python)</span>
             </button>
 
             <button
