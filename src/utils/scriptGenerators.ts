@@ -117,19 +117,91 @@ mail_accounts = {}
 
 # Preload configured accounts
 INITIAL_ACCOUNTS = ${accountsJson}
+DEFAULT_STATIC_PASSWORD = "S-and-T@7-2026"
+
+def get_stp_file_paths():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return [
+        os.path.join(base_dir, "STP.txt"),
+        os.path.join(base_dir, "src", "STP.txt"),
+    ]
+
+def read_static_password_from_stp():
+    for p in get_stp_file_paths():
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    lines = [l.strip() for l in f.read().splitlines() if l.strip()]
+                    if lines and not lines[-1].startswith("@") and "@" not in lines[-1]:
+                        return lines[-1]
+            except Exception:
+                pass
+    return DEFAULT_STATIC_PASSWORD
+
+def sync_stp_and_accounts_files():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    static_pass = read_static_password_from_stp()
+    
+    # 1. Update STP.txt
+    emails = [e for e in mail_accounts.keys() if "@" in e]
+    stp_content = "\\n".join(emails) + ("\\n" if emails else "") + static_pass + "\\n"
+    for p in get_stp_file_paths():
+        try:
+            parent = os.path.dirname(p)
+            if parent and not os.path.exists(parent):
+                os.makedirs(parent, exist_ok=True)
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(stp_content)
+        except Exception as e:
+            logger.warning(f"Could not write {p}: {e}")
+            
+    # 2. Update accounts.txt
+    acc_path = os.path.join(base_dir, "accounts.txt")
+    try:
+        acc_lines = []
+        for acc in mail_accounts.values():
+            acc_lines.append(f"{acc.email}|{acc.password}|{acc.refresh_token}|{acc.client_id}|{acc.user_id}")
+        with open(acc_path, "w", encoding="utf-8") as f:
+            f.write("\\n".join(acc_lines) + "\\n")
+    except Exception as e:
+        logger.warning(f"Could not write accounts.txt: {e}")
 
 def init_preloaded_accounts():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    acc_path = os.path.join(base_dir, "accounts.txt")
+    
+    # Load from accounts.txt first if exists
+    if os.path.exists(acc_path):
+        try:
+            with open(acc_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    parts = line.split("|")
+                    if len(parts) >= 4:
+                        em, pw, rt, cid = parts[0].strip(), parts[1].strip(), parts[2].strip(), parts[3].strip()
+                        uid = int(parts[4].strip()) if len(parts) >= 5 and parts[4].strip().isdigit() else DEFAULT_USER_ID
+                        mail_accounts[em] = MailAccount(em, pw, rt, cid, uid)
+        except Exception as e:
+            logger.warning(f"Failed to read accounts.txt: {e}")
+            
+    # Preload configured initial accounts
     for item in INITIAL_ACCOUNTS:
         if item.get("email") and item.get("refresh_token") and item.get("client_id"):
-            acc = MailAccount(
-                email=item["email"],
-                password=item.get("password", ""),
-                refresh_token=item["refresh_token"],
-                client_id=item["client_id"],
-                user_id=item.get("user_id", DEFAULT_USER_ID)
-            )
-            mail_accounts[item["email"]] = acc
-    logger.info(f"Loaded {len(mail_accounts)} accounts into memory.")
+            if item["email"] not in mail_accounts:
+                acc = MailAccount(
+                    email=item["email"],
+                    password=item.get("password", ""),
+                    refresh_token=item["refresh_token"],
+                    client_id=item["client_id"],
+                    user_id=item.get("user_id", DEFAULT_USER_ID)
+                )
+                mail_accounts[item["email"]] = acc
+                
+    # Sync initial state to files
+    sync_stp_and_accounts_files()
+    logger.info(f"Loaded {len(mail_accounts)} accounts into memory and synchronized STP.txt.")
 
 def main_keyboard():
     keyboard = [
@@ -244,6 +316,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             email, password, refresh_token, client_id = parts[0], parts[1], parts[2], parts[3]
             acc = MailAccount(email, password, refresh_token, client_id, user_id)
             mail_accounts[email] = acc
+            sync_stp_and_accounts_files()
             
             auth_msg = await update.message.reply_text(f"🔐 Authenticating <code>{email}</code> via Microsoft Graph...", parse_mode='HTML')
             messages = acc.fetch_inbox(limit=5)
@@ -353,7 +426,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         email = data.replace("remove_", "")
         if email in mail_accounts:
             del mail_accounts[email]
-            await query.edit_message_text(f"✅ <b>{email}</b> removed from monitor.", parse_mode='HTML')
+            sync_stp_and_accounts_files()
+            await query.edit_message_text(f"✅ <b>{email}</b> removed from monitor and STP.txt.", parse_mode='HTML')
     
     elif data.startswith("msg_"):
         parts = data.split("_")

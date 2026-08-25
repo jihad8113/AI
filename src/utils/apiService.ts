@@ -206,7 +206,7 @@ export async function saveStaticPaData(payload: {
 export async function syncFleetEmailsToStaticPa(
   emails: string[],
   password?: string
-): Promise<{ ok: boolean; error?: string }> {
+): Promise<{ ok: boolean; error?: string; pythonSynced?: boolean }> {
   try {
     const res = await fetch('/api/static-pa', {
       method: 'POST',
@@ -214,8 +214,26 @@ export async function syncFleetEmailsToStaticPa(
       body: JSON.stringify({ emails, password })
     });
     const data = await res.json();
-    return { ok: data.ok };
+    return { ok: data.ok, pythonSynced: data.pythonSynced };
   } catch (err: any) {
     return { ok: false, error: err.message };
   }
 }
+
+export async function executePythonStpCommand(
+  command: 'read' | 'write' | 'add' | 'remove' | 'set-pass',
+  args?: string
+): Promise<{ ok: boolean; output?: string; error?: string; content?: string; emails?: string[]; password?: string }> {
+  try {
+    const res = await fetch('/api/python/stp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command, args })
+    });
+    const data = await res.json();
+    return data;
+  } catch (err: any) {
+    return { ok: false, error: err.message || 'Failed to execute Python STP command' };
+  }
+}
+

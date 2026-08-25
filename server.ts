@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
 import fs from 'fs';
+import { exec } from 'child_process';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -357,6 +358,7 @@ Respond with a valid JSON object matching this schema:
 // 8. Static PA (STP.txt) Management in src and root directories
 const ROOT_STP_FILE_PATH = path.join(process.cwd(), 'STP.txt');
 const SRC_STP_FILE_PATH = path.join(process.cwd(), 'src', 'STP.txt');
+const PYTHON_STP_SCRIPT = path.join(process.cwd(), 'stp_manager.py');
 const DEFAULT_STATIC_PASSWORD = 'S-and-T@7-2026';
 
 function readCurrentStaticPassword(): string {
@@ -397,6 +399,27 @@ function writeStpFiles(content: string) {
   }
 }
 
+// Execute python stp_manager.py directly
+function runPythonStpSync(emails: string[], password: string): Promise<{ ok: boolean; output: string }> {
+  return new Promise((resolve) => {
+    if (!fs.existsSync(PYTHON_STP_SCRIPT)) {
+      return resolve({ ok: false, output: 'stp_manager.py not found' });
+    }
+
+    const emailsArg = emails.length > 0 ? emails.join(',') : '';
+    const passArg = password || DEFAULT_STATIC_PASSWORD;
+    const cmd = `python3 "${PYTHON_STP_SCRIPT}" write --emails "${emailsArg}" --password "${passArg}"`;
+
+    exec(cmd, { timeout: 5000 }, (error, stdout, stderr) => {
+      if (error) {
+        console.warn('Python sync execution notice:', stderr || error.message);
+        return resolve({ ok: false, output: stderr || error.message });
+      }
+      return resolve({ ok: true, output: stdout });
+    });
+  });
+}
+
 app.get('/api/static-pa', (req: Request, res: Response) => {
   try {
     let content = '';
@@ -414,7 +437,6 @@ app.get('/api/static-pa', (req: Request, res: Response) => {
     const emails: string[] = [];
 
     if (lines.length > 0) {
-      // Last non-empty line is assumed to be the static password if it doesn't look like an email
       const lastLine = lines[lines.length - 1];
       if (!lastLine.includes('@')) {
         password = lastLine;
@@ -441,24 +463,33 @@ app.get('/api/static-pa', (req: Request, res: Response) => {
   }
 });
 
-app.post('/api/static-pa', (req: Request, res: Response) => {
+app.post('/api/static-pa', async (req: Request, res: Response) => {
   try {
     const { content, password, emails } = req.body;
     let finalContent = '';
+    let finalEmails: string[] = [];
+    let finalPass = password && typeof password === 'string' && password.trim().length > 0
+      ? password.trim()
+      : readCurrentStaticPassword();
 
     if (content && typeof content === 'string') {
       finalContent = content.trim() + '\n';
+      const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      if (lines.length > 0) {
+        const last = lines[lines.length - 1];
+        if (!last.includes('@')) {
+          finalPass = last;
+          finalEmails = lines.slice(0, lines.length - 1);
+        } else {
+          finalEmails = lines;
+        }
+      }
     } else if (Array.isArray(emails)) {
-      // If password was explicitly provided, use it; otherwise preserve existing password from file
-      const pass = password && typeof password === 'string' && password.trim().length > 0
-        ? password.trim()
-        : readCurrentStaticPassword();
-        
-      const cleanEmails = emails.map(e => String(e).trim()).filter(Boolean);
-      if (cleanEmails.length > 0) {
-        finalContent = `${cleanEmails.join('\n')}\n${pass}\n`;
+      finalEmails = emails.map(e => String(e).trim()).filter(e => e.includes('@'));
+      if (finalEmails.length > 0) {
+        finalContent = `${finalEmails.join('\n')}\n${finalPass}\n`;
       } else {
-        finalContent = `${pass}\n`;
+        finalContent = `${finalPass}\n`;
       }
     } else {
       return res.status(400).json({
@@ -466,13 +497,19 @@ app.post('/api/static-pa', (req: Request, res: Response) => {
       });
     }
 
+    // Direct write to ensure instant availability
     writeStpFiles(finalContent);
+
+    // Also run python script in background/async to ensure python compatibility
+    const pyResult = await runPythonStpSync(finalEmails, finalPass);
 
     return res.json({
       ok: true,
-      message: 'Successfully saved to src/STP.txt and STP.txt',
+      message: 'Successfully updated STP.txt using Python & File Sync',
       filePath: 'src/STP.txt & STP.txt',
-      content: finalContent
+      content: finalContent,
+      pythonSynced: pyResult.ok,
+      pythonOutput: pyResult.output
     });
   } catch (err: any) {
     console.error('Error saving STP.txt:', err);
@@ -481,6 +518,33 @@ app.post('/api/static-pa', (req: Request, res: Response) => {
       message: err.message
     });
   }
+});
+
+// Run raw Python STP commands
+app.post('/api/python/stp', (req: Request, res: Response) => {
+  const { command, args } = req.body;
+  const validCommands = ['read', 'write', 'add', 'remove', 'set-pass'];
+  const cmdType = validCommands.includes(command) ? command : 'read';
+
+  let cliArgs = cmdType;
+  if (cmdType === 'add' || cmdType === 'remove' || cmdType === 'set-pass') {
+    if (args) cliArgs += ` "${args}"`;
+  } else if (cmdType === 'write' && args) {
+    cliArgs += ` ${args}`;
+  }
+
+  const fullCmd = `python3 "${PYTHON_STP_SCRIPT}" ${cliArgs}`;
+  exec(fullCmd, { timeout: 6000 }, (error, stdout, stderr) => {
+    if (error) {
+      return res.status(500).json({ ok: false, error: stderr || error.message });
+    }
+    try {
+      const parsed = JSON.parse(stdout);
+      return res.json(parsed);
+    } catch {
+      return res.json({ ok: true, output: stdout });
+    }
+  });
 });
 
 async function startServer() {

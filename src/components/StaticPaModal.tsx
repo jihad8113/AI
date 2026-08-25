@@ -14,10 +14,12 @@ import {
   FileCode,
   Sparkles,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Terminal,
+  Play
 } from 'lucide-react';
 import { MailAccount } from '../types';
-import { fetchStaticPaData, saveStaticPaData } from '../utils/apiService';
+import { fetchStaticPaData, saveStaticPaData, executePythonStpCommand } from '../utils/apiService';
 import { loadStaticPaPassword, saveStaticPaPassword } from '../utils/storage';
 import { playSoftClick, playWindowsNotificationSound } from '../utils/audio';
 import { copyToClipboard } from '../utils/clipboard';
@@ -49,6 +51,8 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
   const [rawText, setRawText] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isRunningPython, setIsRunningPython] = useState<boolean>(false);
+  const [pythonOutput, setPythonOutput] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
 
@@ -103,6 +107,65 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
     });
     if (res.ok) {
       setLastSavedTime(new Date().toLocaleTimeString());
+    }
+  };
+
+  // Run Python STP command directly
+  const handleRunPythonSync = async () => {
+    setIsRunningPython(true);
+    playSoftClick();
+    const emailsArg = selectedEmails.join(',');
+    const passArg = staticPassword.trim() || DEFAULT_STATIC_PASSWORD;
+
+    const res = await executePythonStpCommand('write', `--emails "${emailsArg}" --password "${passArg}"`);
+    setIsRunningPython(false);
+
+    if (res.ok) {
+      playWindowsNotificationSound();
+      const outputText = res.content || res.output || JSON.stringify(res, null, 2);
+      setPythonOutput(`[Python 3.10 STP Sync OK] >> ${new Date().toLocaleTimeString()}\n${outputText}`);
+      setLastSavedTime(new Date().toLocaleTimeString());
+      addToast({
+        id: Date.now().toString(),
+        title: '⚡ Python STP.txt Sync Succeeded',
+        preview: `stp_manager.py wrote ${selectedEmails.length} emails and static password.`,
+        type: 'system'
+      });
+      addLog('success', 'Python STP Sync executed', `Wrote ${selectedEmails.length} accounts to STP.txt via python3 stp_manager.py`);
+    } else {
+      setPythonOutput(`[Python Error] >> ${res.error || 'Failed to run stp_manager.py'}`);
+      addToast({
+        id: Date.now().toString(),
+        title: 'Python STP Error',
+        preview: res.error || 'Error running python script',
+        type: 'error'
+      });
+    }
+  };
+
+  const handleRunPythonRead = async () => {
+    setIsRunningPython(true);
+    playSoftClick();
+    const res = await executePythonStpCommand('read');
+    setIsRunningPython(false);
+
+    if (res.ok) {
+      const outputText = res.content || JSON.stringify(res, null, 2);
+      setPythonOutput(`[Python 3.10 Read OK] >> ${new Date().toLocaleTimeString()}\n${outputText}`);
+      if (res.emails && Array.isArray(res.emails)) {
+        setSelectedEmails(res.emails);
+      }
+      if (res.password) {
+        setStaticPassword(res.password);
+      }
+      addToast({
+        id: Date.now().toString(),
+        title: 'Python STP Read Succeeded',
+        preview: `Loaded ${res.emails?.length || 0} accounts from STP.txt via Python.`,
+        type: 'system'
+      });
+    } else {
+      setPythonOutput(`[Python Error] >> ${res.error}`);
     }
   };
 
@@ -278,11 +341,14 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
                   Static PA (STP.txt) Manager
                 </h3>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30">
-                  src/STP.txt
+                  src/STP.txt & STP.txt
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                  Python 3.10 Sync
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Displays all fleet mail accounts with a single static password and syncs directly to <code className="font-mono text-indigo-500">src/STP.txt</code>.
+                Automates reading and writing <code className="font-mono text-indigo-500">STP.txt</code> with all mail accounts and static password.
               </p>
             </div>
           </div>
@@ -297,6 +363,57 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
 
         {/* Modal Content */}
         <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs">
+          {/* Python Automation Card */}
+          <div
+            className={`p-3 rounded-xl border ${
+              darkMode ? 'bg-slate-950/80 border-emerald-900/50' : 'bg-emerald-50/50 border-emerald-200'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <Terminal className="w-4 h-4 text-emerald-500" />
+                <span className="font-bold text-[11px] uppercase tracking-wider text-emerald-700 dark:text-emerald-300">
+                  Python 3 Engine Automation (`stp_manager.py`)
+                </span>
+              </div>
+              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                Auto-Synced
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                id="btn-run-python-sync"
+                onClick={handleRunPythonSync}
+                disabled={isRunningPython}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                {isRunningPython ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                )}
+                <span>Run Python Write (Sync Now)</span>
+              </button>
+
+              <button
+                id="btn-run-python-read"
+                onClick={handleRunPythonRead}
+                disabled={isRunningPython}
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 font-semibold text-[11px] hover:bg-emerald-50 dark:hover:bg-slate-800 transition cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Test Python Read</span>
+              </button>
+            </div>
+
+            {pythonOutput && (
+              <div className="mt-2.5 p-2.5 rounded-lg bg-black/90 font-mono text-[10px] text-emerald-400 border border-emerald-900/60 overflow-x-auto max-h-32">
+                <pre className="whitespace-pre-wrap">{pythonOutput}</pre>
+              </div>
+            )}
+          </div>
+
           {/* Static Password Control Card */}
           <div
             className={`p-3 rounded-xl border ${
