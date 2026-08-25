@@ -30,6 +30,7 @@ import {
   generateStandaloneHtmlFile
 } from '../utils/scriptGenerators';
 import { fetchStaticPaData } from '../utils/apiService';
+import { loadStaticPaPassword } from '../utils/storage';
 import { playSoftClick, playWindowsNotificationSound } from '../utils/audio';
 
 interface ExporterViewProps {
@@ -48,7 +49,7 @@ export const ExporterView: React.FC<ExporterViewProps> = ({
   const [activeSubTab, setActiveSubTab] = useState<'html' | 'exe_bat' | 'python' | 'bat' | 'ps1' | 'accounts' | 'stp' | 'readme'>('html');
   const [copied, setCopied] = useState(false);
   const [zipping, setZipping] = useState(false);
-  const [staticPassword, setStaticPassword] = useState('S-and-T@7-2026');
+  const [staticPassword, setStaticPassword] = useState(() => loadStaticPaPassword());
 
   useEffect(() => {
     fetchStaticPaData().then((res) => {

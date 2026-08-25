@@ -204,13 +204,14 @@ export async function saveStaticPaData(payload: {
 }
 
 export async function syncFleetEmailsToStaticPa(
-  emails: string[]
+  emails: string[],
+  password?: string
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch('/api/static-pa', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emails })
+      body: JSON.stringify({ emails, password })
     });
     const data = await res.json();
     return { ok: data.ok };

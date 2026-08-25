@@ -5,7 +5,8 @@ const STORAGE_KEYS = {
   TELEGRAM: 'winmail_telegram_v1',
   SYNC: 'winmail_sync_v1',
   LOGS: 'winmail_logs_v1',
-  THEME: 'winmail_theme_v1'
+  THEME: 'winmail_theme_v1',
+  STATIC_PA_PASSWORD: 'winmail_static_pa_password_v1'
 };
 
 export const INITIAL_DEMO_ACCOUNTS: MailAccount[] = [
@@ -254,5 +255,21 @@ export function saveLogs(logs: SyncLog[]) {
     // Keep max 200 logs
     const trimmed = logs.slice(0, 200);
     localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(trimmed));
+  } catch (e) {}
+}
+
+export function loadStaticPaPassword(): string {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEYS.STATIC_PA_PASSWORD);
+    if (raw && raw.trim()) {
+      return raw.trim();
+    }
+  } catch (e) {}
+  return 'S-and-T@7-2026';
+}
+
+export function saveStaticPaPassword(password: string) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.STATIC_PA_PASSWORD, password.trim());
   } catch (e) {}
 }

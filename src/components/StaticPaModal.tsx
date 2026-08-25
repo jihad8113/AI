@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { MailAccount } from '../types';
 import { fetchStaticPaData, saveStaticPaData } from '../utils/apiService';
+import { loadStaticPaPassword, saveStaticPaPassword } from '../utils/storage';
 import { playSoftClick, playWindowsNotificationSound } from '../utils/audio';
 import { copyToClipboard } from '../utils/clipboard';
 
@@ -40,7 +41,7 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
 }) => {
   const DEFAULT_STATIC_PASSWORD = 'S-and-T@7-2026';
 
-  const [staticPassword, setStaticPassword] = useState<string>(DEFAULT_STATIC_PASSWORD);
+  const [staticPassword, setStaticPassword] = useState<string>(() => loadStaticPaPassword());
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [customEmailsInput, setCustomEmailsInput] = useState<string>('');
@@ -51,7 +52,7 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
 
-  // Initialize emails from accounts
+  // Initialize emails from accounts & server
   useEffect(() => {
     if (isOpen) {
       loadInitialData();
@@ -69,8 +70,9 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
     // Fetch existing static password and data from server /src/STP.txt
     const serverData = await fetchStaticPaData();
     if (serverData.ok) {
-      if (serverData.password) {
-        setStaticPassword(serverData.password);
+      if (serverData.password && serverData.password.trim()) {
+        setStaticPassword(serverData.password.trim());
+        saveStaticPaPassword(serverData.password.trim());
       }
     }
 
@@ -90,6 +92,19 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
   };
 
   const currentGeneratedText = generateStpContent(selectedEmails, staticPassword);
+
+  // Auto-sync function whenever password or emails change
+  const autoSaveToServer = async (newEmails: string[], newPass: string) => {
+    const trimmedPass = newPass.trim() || DEFAULT_STATIC_PASSWORD;
+    saveStaticPaPassword(trimmedPass);
+    const res = await saveStaticPaData({
+      emails: newEmails,
+      password: trimmedPass
+    });
+    if (res.ok) {
+      setLastSavedTime(new Date().toLocaleTimeString());
+    }
+  };
 
   // Update raw editor when switching
   useEffect(() => {
@@ -111,6 +126,24 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
         type: 'system'
       });
     }
+  };
+
+  const handlePasswordChange = (val: string) => {
+    setStaticPassword(val);
+    saveStaticPaPassword(val);
+    autoSaveToServer(selectedEmails, val);
+  };
+
+  const handleResetPassword = () => {
+    setStaticPassword(DEFAULT_STATIC_PASSWORD);
+    saveStaticPaPassword(DEFAULT_STATIC_PASSWORD);
+    autoSaveToServer(selectedEmails, DEFAULT_STATIC_PASSWORD);
+    addToast({
+      id: Date.now().toString(),
+      title: 'Password Reset',
+      preview: `Reset static password to default: ${DEFAULT_STATIC_PASSWORD}`,
+      type: 'system'
+    });
   };
 
   const handleSaveToSrc = async () => {
@@ -177,17 +210,26 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
   };
 
   const handleToggleEmail = (email: string) => {
+    let nextList: string[];
     if (selectedEmails.includes(email)) {
-      setSelectedEmails(selectedEmails.filter((e) => e !== email));
+      nextList = selectedEmails.filter((e) => e !== email);
     } else {
-      setSelectedEmails([...selectedEmails, email]);
+      nextList = [...selectedEmails, email];
     }
+    setSelectedEmails(nextList);
+    autoSaveToServer(nextList, staticPassword);
   };
 
   const handleSelectAll = () => {
     const fleetEmails = accounts.map((a) => a.email.trim()).filter(Boolean);
     const combined = Array.from(new Set([...selectedEmails, ...fleetEmails]));
     setSelectedEmails(combined);
+    autoSaveToServer(combined, staticPassword);
+  };
+
+  const handleClearAll = () => {
+    setSelectedEmails([]);
+    autoSaveToServer([], staticPassword);
   };
 
   const handleAddCustomEmails = () => {
@@ -197,12 +239,14 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
       .map((l) => l.trim())
       .filter((l) => l.includes('@'));
     if (lines.length > 0) {
-      setSelectedEmails(Array.from(new Set([...selectedEmails, ...lines])));
+      const nextList = Array.from(new Set([...selectedEmails, ...lines]));
+      setSelectedEmails(nextList);
       setCustomEmailsInput('');
+      autoSaveToServer(nextList, staticPassword);
       addToast({
         id: Date.now().toString(),
         title: 'Emails Added',
-        preview: `Added ${lines.length} custom email addresses to Static PA list.`,
+        preview: `Added ${lines.length} custom email addresses to Static PA list and saved to src/STP.txt.`,
         type: 'system'
       });
     }
@@ -269,7 +313,7 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
                 </span>
               </div>
               <button
-                onClick={() => setStaticPassword(DEFAULT_STATIC_PASSWORD)}
+                onClick={handleResetPassword}
                 className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-semibold cursor-pointer"
               >
                 Reset Default ({DEFAULT_STATIC_PASSWORD})
@@ -282,7 +326,7 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
                   id="input-static-password"
                   type={showPassword ? 'text' : 'password'}
                   value={staticPassword}
-                  onChange={(e) => setStaticPassword(e.target.value)}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
                   placeholder="Enter static password..."
                   className={`w-full px-3 py-1.5 pr-9 font-mono text-xs rounded-lg border transition ${
                     darkMode
@@ -340,7 +384,7 @@ export const StaticPaModal: React.FC<StaticPaModalProps> = ({
                 </button>
                 <span className="text-slate-300 dark:text-slate-700">|</span>
                 <button
-                  onClick={() => setSelectedEmails([])}
+                  onClick={handleClearAll}
                   className="text-[10px] text-slate-400 hover:text-slate-200 hover:underline cursor-pointer"
                 >
                   Clear All

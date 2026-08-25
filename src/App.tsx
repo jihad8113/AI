@@ -26,7 +26,8 @@ import {
   loadSyncSettings,
   saveSyncSettings,
   loadLogs,
-  saveLogs
+  saveLogs,
+  loadStaticPaPassword
 } from './utils/storage';
 import {
   fetchInboxMessages,
@@ -73,7 +74,8 @@ export default function App() {
     saveAccounts(accounts);
     // Automatically update src/STP.txt with current account emails while keeping the static password intact
     const currentEmails = accounts.map((a) => a.email.trim()).filter(Boolean);
-    syncFleetEmailsToStaticPa(currentEmails);
+    const currentPass = loadStaticPaPassword();
+    syncFleetEmailsToStaticPa(currentEmails, currentPass);
   }, [accounts]);
 
   useEffect(() => {
