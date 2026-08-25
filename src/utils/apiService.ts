@@ -155,3 +155,50 @@ export async function summarizeEmailAi(message: EmailMessage): Promise<{ ok: boo
     return { ok: false, error: err.message };
   }
 }
+
+export async function fetchStaticPaData(): Promise<{
+  ok: boolean;
+  content?: string;
+  password?: string;
+  emails?: string[];
+  filePath?: string;
+  error?: string;
+}> {
+  try {
+    const res = await fetch('/api/static-pa');
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      return { ok: false, error: data.error || 'Failed to fetch Static PA' };
+    }
+    return {
+      ok: true,
+      content: data.content,
+      password: data.password,
+      emails: data.emails,
+      filePath: data.filePath
+    };
+  } catch (err: any) {
+    return { ok: false, error: err.message || 'Network error fetching Static PA' };
+  }
+}
+
+export async function saveStaticPaData(payload: {
+  content?: string;
+  password?: string;
+  emails?: string[];
+}): Promise<{ ok: boolean; message?: string; content?: string; error?: string }> {
+  try {
+    const res = await fetch('/api/static-pa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      return { ok: false, error: data.error || 'Failed to save Static PA' };
+    }
+    return { ok: true, message: data.message, content: data.content };
+  } catch (err: any) {
+    return { ok: false, error: err.message || 'Network error saving Static PA' };
+  }
+}

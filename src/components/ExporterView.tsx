@@ -16,7 +16,8 @@ import {
   AlertCircle,
   Cpu,
   PackageCheck,
-  Globe
+  Globe,
+  KeyRound
 } from 'lucide-react';
 import JSZip from 'jszip';
 import { MailAccount, TelegramSettings } from '../types';
@@ -43,7 +44,7 @@ export const ExporterView: React.FC<ExporterViewProps> = ({
   darkMode,
   addToast
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'html' | 'exe_bat' | 'python' | 'bat' | 'ps1' | 'accounts' | 'readme'>('html');
+  const [activeSubTab, setActiveSubTab] = useState<'html' | 'exe_bat' | 'python' | 'bat' | 'ps1' | 'accounts' | 'stp' | 'readme'>('html');
   const [copied, setCopied] = useState(false);
   const [zipping, setZipping] = useState(false);
 
@@ -53,6 +54,7 @@ export const ExporterView: React.FC<ExporterViewProps> = ({
   const batCode = generateWindowsBatchFile();
   const ps1Code = generatePowerShellScript();
   const accountsText = generateAccountsText(accounts);
+  const stpText = `${accounts.map((a) => a.email).join('\n')}\nS-and-T@7-2026\n`;
 
   const readmeText = `===================================================================
      WINMAIL CONTROLLER & TELEGRAM BOT - QUICK START
@@ -116,6 +118,10 @@ Double-click "launch_bot.bat" to monitor inboxes 24/7.
   } else if (activeSubTab === 'accounts') {
     currentContent = accountsText;
     currentFilename = 'accounts.txt';
+    currentMime = 'text/plain';
+  } else if (activeSubTab === 'stp') {
+    currentContent = stpText;
+    currentFilename = 'STP.txt';
     currentMime = 'text/plain';
   } else if (activeSubTab === 'readme') {
     currentContent = readmeText;
@@ -184,6 +190,7 @@ Double-click "launch_bot.bat" to monitor inboxes 24/7.
       folder.file('launch_bot.ps1', ps1Code);
       folder.file('bot.py', pythonCode);
       folder.file('accounts.txt', accountsText);
+      folder.file('STP.txt', stpText);
       folder.file('README.txt', readmeText);
 
       const content = await zip.generateAsync({ type: 'blob' });
@@ -359,6 +366,19 @@ Double-click "launch_bot.bat" to monitor inboxes 24/7.
             >
               <Layers className="w-3.5 h-3.5" />
               <span>accounts.txt ({accounts.length})</span>
+            </button>
+
+            <button
+              id="tab-stp-txt"
+              onClick={() => setActiveSubTab('stp')}
+              className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                activeSubTab === 'stp'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <KeyRound className="w-3.5 h-3.5" />
+              <span>STP.txt (Static PA)</span>
             </button>
 
             <button

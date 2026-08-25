@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import path from 'path';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -349,6 +350,92 @@ Respond with a valid JSON object matching this schema:
     return res.status(500).json({
       error: 'AI analysis failed',
       message: error.message
+    });
+  }
+});
+
+// 8. Static PA (STP.txt) Management in src directory
+const STP_FILE_PATH = path.join(process.cwd(), 'src', 'STP.txt');
+const DEFAULT_STATIC_PASSWORD = 'S-and-T@7-2026';
+
+app.get('/api/static-pa', (req: Request, res: Response) => {
+  try {
+    let content = '';
+    if (fs.existsSync(STP_FILE_PATH)) {
+      content = fs.readFileSync(STP_FILE_PATH, 'utf-8');
+    } else {
+      content = `nsnfnforo@hotmail.com\nnsnfnoro@hotmail.com\nsnfforo@hotmail.com\n${DEFAULT_STATIC_PASSWORD}\n`;
+      fs.writeFileSync(STP_FILE_PATH, content, 'utf-8');
+    }
+
+    const lines = content.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    let password = DEFAULT_STATIC_PASSWORD;
+    const emails: string[] = [];
+
+    if (lines.length > 0) {
+      // Last non-empty line is assumed to be the static password if it doesn't look like an email, or if it's the designated line
+      const lastLine = lines[lines.length - 1];
+      if (!lastLine.includes('@')) {
+        password = lastLine;
+        emails.push(...lines.slice(0, lines.length - 1));
+      } else {
+        emails.push(...lines);
+      }
+    }
+
+    return res.json({
+      ok: true,
+      filePath: 'src/STP.txt',
+      content,
+      password,
+      emails,
+      defaultPassword: DEFAULT_STATIC_PASSWORD
+    });
+  } catch (err: any) {
+    console.error('Error reading STP.txt:', err);
+    return res.status(500).json({
+      error: 'Failed to read STP.txt',
+      message: err.message
+    });
+  }
+});
+
+app.post('/api/static-pa', (req: Request, res: Response) => {
+  try {
+    const { content, password, emails } = req.body;
+    let finalContent = '';
+
+    if (content && typeof content === 'string') {
+      finalContent = content.trim() + '\n';
+    } else if (Array.isArray(emails)) {
+      const pass = password && typeof password === 'string' ? password.trim() : DEFAULT_STATIC_PASSWORD;
+      const cleanEmails = emails.map(e => String(e).trim()).filter(Boolean);
+      finalContent = `${cleanEmails.join('\n')}\n${pass}\n`;
+    } else {
+      return res.status(400).json({
+        error: 'Invalid payload. Provide content or { emails, password }.'
+      });
+    }
+
+    // Ensure src directory exists
+    const srcDir = path.join(process.cwd(), 'src');
+    if (!fs.existsSync(srcDir)) {
+      fs.mkdirSync(srcDir, { recursive: true });
+    }
+
+    fs.writeFileSync(STP_FILE_PATH, finalContent, 'utf-8');
+
+    return res.json({
+      ok: true,
+      message: 'Successfully saved to src/STP.txt',
+      filePath: 'src/STP.txt',
+      content: finalContent
+    });
+  } catch (err: any) {
+    console.error('Error saving STP.txt:', err);
+    return res.status(500).json({
+      error: 'Failed to write STP.txt',
+      message: err.message
     });
   }
 });

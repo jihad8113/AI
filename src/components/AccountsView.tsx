@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Search,
   Key,
+  KeyRound,
   Shield,
   Download,
   Upload,
@@ -35,6 +36,7 @@ import {
 import { playSoftClick, playWindowsNotificationSound } from '../utils/audio';
 import { copyToClipboard } from '../utils/clipboard';
 import { ClickableEmail } from '../utils/clickableCodes';
+import { StaticPaModal } from './StaticPaModal';
 
 interface AccountsViewProps {
   accounts: MailAccount[];
@@ -56,6 +58,7 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
+  const [isStaticPaModalOpen, setIsStaticPaModalOpen] = useState(false);
   const [bulkInput, setBulkInput] = useState('');
   const [autoVerifyOnBulk, setAutoVerifyOnBulk] = useState(true);
   const [isSingleModalOpen, setIsSingleModalOpen] = useState(false);
@@ -685,6 +688,19 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           >
             <Download className="w-3 h-3" />
             <span>Export (.txt)</span>
+          </button>
+
+          <button
+            id="btn-static-pa"
+            onClick={() => {
+              playSoftClick();
+              setIsStaticPaModalOpen(true);
+            }}
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md border border-indigo-300 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-[11px] font-semibold text-indigo-700 dark:text-indigo-300 shadow-2xs transition active:scale-95 cursor-pointer"
+            title="Open Static PA & STP.txt Manager"
+          >
+            <KeyRound className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+            <span>Static PA</span>
           </button>
 
           <button
@@ -1642,6 +1658,15 @@ export const AccountsView: React.FC<AccountsViewProps> = ({
           </div>
         </div>
       )}
+      {/* 🔐 STATIC PA (STP.TXT) MODAL */}
+      <StaticPaModal
+        isOpen={isStaticPaModalOpen}
+        onClose={() => setIsStaticPaModalOpen(false)}
+        accounts={accounts}
+        darkMode={darkMode}
+        addToast={addToast}
+        addLog={addLog}
+      />
     </div>
   );
 };
