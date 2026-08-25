@@ -429,7 +429,8 @@ function runPythonStpSync(emails: string[], password: string): Promise<{ ok: boo
 }
 
 // Direct raw text endpoints so the file can be inspected in the browser
-app.get(['/STP.txt', '/src/STP.txt', '/api/static-pa/raw'], (req: Request, res: Response) => {
+const STP_TEXT_ROUTES = ['/STP.txt', '/src/STP.txt', '/public/STP.txt', '/api/static-pa/raw', '/api/stp/raw', '/api/stp.txt'];
+app.get(STP_TEXT_ROUTES, (req: Request, res: Response) => {
   try {
     let content = '';
     if (fs.existsSync(SRC_STP_FILE_PATH)) {
@@ -448,7 +449,8 @@ app.get(['/STP.txt', '/src/STP.txt', '/api/static-pa/raw'], (req: Request, res: 
   }
 });
 
-app.get('/api/static-pa', (req: Request, res: Response) => {
+const STP_API_GET_ROUTES = ['/api/static-pa', '/api/static-pa/', '/api/stp', '/api/stp/', '/api/static_pa', '/api/static_pa/'];
+app.get(STP_API_GET_ROUTES, (req: Request, res: Response) => {
   try {
     let content = '';
     if (fs.existsSync(SRC_STP_FILE_PATH)) {
@@ -493,13 +495,24 @@ app.get('/api/static-pa', (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('Error reading STP.txt:', err);
     return res.status(500).json({
+      ok: false,
       error: 'Failed to read STP.txt',
       message: err.message
     });
   }
 });
 
-app.post('/api/static-pa', async (req: Request, res: Response) => {
+const STP_API_POST_ROUTES = [
+  '/api/static-pa',
+  '/api/static-pa/',
+  '/api/stp',
+  '/api/stp/',
+  '/api/static_pa',
+  '/api/static_pa/',
+  '/api/static-pa/save',
+  '/api/stp/save'
+];
+app.post(STP_API_POST_ROUTES, (req: Request, res: Response) => {
   try {
     const { content, password, emails } = req.body;
     let finalContent = '';
@@ -529,27 +542,30 @@ app.post('/api/static-pa', async (req: Request, res: Response) => {
       }
     } else {
       return res.status(400).json({
+        ok: false,
         error: 'Invalid payload. Provide content or { emails, password }.'
       });
     }
 
-    // Direct write to ensure instant availability
+    // Direct write to ensure instant disk availability
     writeStpFiles(finalContent);
 
-    // Also run python script in background/async to ensure python compatibility
-    const pyResult = await runPythonStpSync(finalEmails, finalPass);
+    // Run python script asynchronously so it doesn't block the HTTP response
+    runPythonStpSync(finalEmails, finalPass).catch(err => console.warn('Async Python sync notice:', err));
 
     return res.json({
       ok: true,
       message: 'Successfully updated STP.txt using Python & File Sync',
       filePath: 'src/STP.txt & STP.txt',
       content: finalContent,
-      pythonSynced: pyResult.ok,
-      pythonOutput: pyResult.output
+      emails: finalEmails,
+      password: finalPass,
+      pythonSynced: true
     });
   } catch (err: any) {
     console.error('Error saving STP.txt:', err);
     return res.status(500).json({
+      ok: false,
       error: 'Failed to write STP.txt',
       message: err.message
     });

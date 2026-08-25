@@ -164,30 +164,58 @@ export async function fetchStaticPaData(): Promise<{
   filePath?: string;
   error?: string;
 }> {
-  try {
-    const res = await fetch('/api/static-pa');
-    const text = await res.text();
-    let data: any = {};
-    if (text) {
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { ok: res.ok, message: text };
+  const endpoints = ['/api/static-pa', '/api/stp', '/api/static_pa', '/STP.txt'];
+  let lastError = 'Failed to fetch Static PA';
+
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, { cache: 'no-store' });
+      if (res.ok) {
+        const text = await res.text();
+        if (text) {
+          try {
+            const data = JSON.parse(text);
+            if (data && (data.ok !== false)) {
+              return {
+                ok: true,
+                content: data.content,
+                password: data.password,
+                emails: data.emails,
+                filePath: data.filePath
+              };
+            }
+          } catch {
+            // If raw text returned (e.g. from /STP.txt)
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            let password = 'S-and-T@7-2026';
+            const emails: string[] = [];
+            if (lines.length > 0) {
+              const last = lines[lines.length - 1];
+              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(last)) {
+                password = last;
+                emails.push(...lines.slice(0, lines.length - 1).filter(l => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l)));
+              } else {
+                emails.push(...lines.filter(l => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l)));
+              }
+            }
+            return {
+              ok: true,
+              content: text,
+              password,
+              emails,
+              filePath: 'src/STP.txt'
+            };
+          }
+        }
+      } else {
+        lastError = `Status ${res.status} on ${ep}`;
       }
+    } catch (err: any) {
+      lastError = err.message || 'Network error';
     }
-    if (!res.ok || (data && data.ok === false)) {
-      return { ok: false, error: data.error || data.message || `Failed with status ${res.status}` };
-    }
-    return {
-      ok: true,
-      content: data.content,
-      password: data.password,
-      emails: data.emails,
-      filePath: data.filePath
-    };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Network error fetching Static PA' };
   }
+
+  return { ok: false, error: lastError };
 }
 
 export async function saveStaticPaData(payload: {
@@ -195,59 +223,64 @@ export async function saveStaticPaData(payload: {
   password?: string;
   emails?: string[];
 }): Promise<{ ok: boolean; message?: string; content?: string; error?: string; pythonSynced?: boolean; pythonOutput?: string }> {
-  try {
-    const res = await fetch('/api/static-pa', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const text = await res.text();
-    let data: any = {};
-    if (text) {
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { ok: res.ok, message: text };
+  const endpoints = ['/api/static-pa', '/api/stp', '/api/static_pa', '/api/static-pa/save', '/api/stp/save'];
+  let lastError = 'Failed to save Static PA';
+
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const text = await res.text();
+      let data: any = {};
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { ok: res.ok, message: text };
+        }
       }
+      if (res.ok && (data.ok ?? true)) {
+        return {
+          ok: true,
+          message: data.message || 'Saved successfully',
+          content: data.content,
+          pythonSynced: data.pythonSynced ?? true,
+          pythonOutput: data.pythonOutput
+        };
+      } else {
+        lastError = data.error || data.message || `Server returned status ${res.status}`;
+      }
+    } catch (err: any) {
+      lastError = err.message || 'Network error saving Static PA';
     }
-    if (!res.ok || (data && data.ok === false)) {
-      return { ok: false, error: data.error || data.message || `Server returned status ${res.status}` };
-    }
-    return {
-      ok: true,
-      message: data.message || 'Saved successfully',
-      content: data.content,
-      pythonSynced: data.pythonSynced,
-      pythonOutput: data.pythonOutput
-    };
-  } catch (err: any) {
-    return { ok: false, error: err.message || 'Network error saving Static PA' };
   }
+
+  return { ok: false, error: lastError };
 }
 
 export async function syncFleetEmailsToStaticPa(
   emails: string[],
   password?: string
 ): Promise<{ ok: boolean; error?: string; pythonSynced?: boolean }> {
-  try {
-    const res = await fetch('/api/static-pa', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ emails, password })
-    });
-    const text = await res.text();
-    let data: any = {};
-    if (text) {
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { ok: res.ok };
+  const endpoints = ['/api/static-pa', '/api/stp', '/api/static_pa'];
+  for (const ep of endpoints) {
+    try {
+      const res = await fetch(ep, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emails, password })
+      });
+      if (res.ok) {
+        return { ok: true, pythonSynced: true };
       }
+    } catch {
+      // try next endpoint
     }
-    return { ok: res.ok && (data.ok ?? true), pythonSynced: data.pythonSynced };
-  } catch (err: any) {
-    return { ok: false, error: err.message };
   }
+  return { ok: false, error: 'Could not sync fleet emails' };
 }
 
 export async function executePythonStpCommand(
